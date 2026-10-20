@@ -1,15 +1,15 @@
 """
 pipe_constants.py
-Định nghĩa hệ thống Bitmask và các phép toán hình học cho Puzzle Pipes.
+Defines the bitmask direction system and geometric utilities for Puzzle Pipes.
 
-Bitmask 4 hướng:
-  Bit 0: NORTH (1) - Lên
-  Bit 1: EAST  (2) - Phải
-  Bit 2: SOUTH (4) - Xuống
-  Bit 3: WEST  (8) - Trái
+4-bit directional mask:
+  Bit 0: NORTH (1) - Up
+  Bit 1: EAST  (2) - Right
+  Bit 2: SOUTH (4) - Down
+  Bit 3: WEST  (8) - Left
 """
 
-# Hướng cổng nối
+# Connection ports
 NORTH = 1  # 0001
 EAST  = 2  # 0010
 SOUTH = 4  # 0100
@@ -17,7 +17,7 @@ WEST  = 8  # 1000
 
 DIRECTIONS = [NORTH, EAST, SOUTH, WEST]
 
-# Tọa độ dịch chuyển theo hướng (dr, dc)
+# Coordinate deltas for each direction (dr, dc)
 DELTAS = {
     NORTH: (-1, 0),
     EAST:  (0, 1),
@@ -25,7 +25,7 @@ DELTAS = {
     WEST:  (0, -1)
 }
 
-# Cổng đối diện tương ứng
+# Matching opposite ports
 OPPOSITE = {
     NORTH: SOUTH,
     EAST:  WEST,
@@ -34,7 +34,7 @@ OPPOSITE = {
 }
 
 def rotate_cw(mask: int, times: int = 1) -> int:
-    """Xoay bitmask theo chiều kim đồng hồ 'times' lần 90 độ."""
+    """Rotates a bitmask clockwise by 90 degrees 'times' times."""
     times = times % 4
     for _ in range(times):
         mask = ((mask << 1) & 0b1111) | (mask >> 3)
@@ -42,10 +42,10 @@ def rotate_cw(mask: int, times: int = 1) -> int:
 
 def get_possible_rotations(mask: int) -> list[int]:
     """
-    Trả về danh sách tất cả các cấu hình xoay duy nhất của một mảnh ống.
-    - End, Turn, Tee: 4 cấu hình
-    - Straight: 2 cấu hình
-    - Cross, Blank: 1 cấu hình
+    Returns a list of all unique rotation orientations for a pipe piece.
+    - End, Turn, Tee: 4 configurations
+    - Straight: 2 configurations
+    - Cross, Blank: 1 configuration
     """
     rotations = []
     current = mask
@@ -55,8 +55,8 @@ def get_possible_rotations(mask: int) -> list[int]:
         current = rotate_cw(current, 1)
     return rotations
 
-# Phân loại hình dạng ống dựa trên số lượng cổng nối
 def get_shape_type(mask: int) -> str:
+    """Classifies pipe shape based on the number of active connection ports."""
     count = bin(mask & 0b1111).count('1')
     if count == 0:
         return 'BLANK'
@@ -71,4 +71,3 @@ def get_shape_type(mask: int) -> str:
     elif count == 4:
         return 'CROSS'
     return 'UNKNOWN'
-

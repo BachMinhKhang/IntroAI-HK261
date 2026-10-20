@@ -1,11 +1,11 @@
 """
 main.py
-Điểm khởi chạy chính (Entry Point) của đồ án Puzzle Pipes AI.
+Main entry point for the Puzzle Pipes AI Project.
 
-Cách sử dụng:
-  - Khởi chạy Web Visualizer:  python main.py
-  - Chạy Benchmark đo số liệu: python main.py --benchmark
-  - Sinh thêm màn chơi mới:   python main.py --generate 5
+Usage:
+  - Launch Web Visualizer:      python main.py
+  - Run Benchmark Suite:        python main.py --benchmark
+  - Generate New Random Level:  python main.py --generate 5
 """
 
 import sys
@@ -18,11 +18,11 @@ def start_web():
     port = 5000
     url = f"http://127.0.0.1:{port}"
     print("=" * 60)
-    print(f" [OK] Khoi chay Puzzle Pipes AI Visualizer tren Flask Server...")
-    print(f" [->] Mo trinh duyet tai: {url}")
+    print(f" [OK] Launching Puzzle Pipes AI Visualizer on Flask Server...")
+    print(f" [->] Open browser at: {url}")
     print("=" * 60)
 
-    # Tự động mở trình duyệt sau 1.2 giây
+    # Open browser automatically after 1.2s
     def open_browser():
         webbrowser.open_new(url)
     Timer(1.2, open_browser).start()
@@ -32,7 +32,7 @@ def start_web():
 def start_benchmark():
     from src.benchmark import run_benchmarks
     print("=" * 60)
-    print(" [OK] Dang chay Benchmark tren toan bo cac test cases trong inputs/...")
+    print(" [OK] Running Benchmark across all test cases in inputs/...")
     print("=" * 60)
     run_benchmarks()
 
@@ -43,7 +43,7 @@ def start_generator(size_str: str):
         output_path = f"inputs/level_{size}x{size}_custom.txt"
         generate_and_save_level(size, size, output_path)
     except ValueError:
-        print("[!] Kich thuoc phai la mot so nguyen (vi du: python main.py --generate 5)")
+        print("[!] Size must be an integer (e.g.: python main.py --generate 5)")
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
@@ -53,10 +53,9 @@ if __name__ == "__main__":
         elif flag == "--generate" and len(sys.argv) > 2:
             start_generator(sys.argv[2])
         else:
-            print("Cac tham so hop le:")
-            print("  python main.py             : Khoi chay giao dien Web Visualizer")
-            print("  python main.py --benchmark : Chay thu nghiem lay so lieu CSV")
-            print("  python main.py --generate N: Sinh file testcase NxN moi")
+            print("Valid arguments:")
+            print("  python main.py             : Launch Web Visualizer")
+            print("  python main.py --benchmark : Run automated benchmark evaluation")
+            print("  python main.py --generate N: Generate a new NxN level file")
     else:
         start_web()
-

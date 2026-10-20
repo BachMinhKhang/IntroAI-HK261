@@ -1,8 +1,8 @@
 """
 benchmark.py
-Script tự động chạy thực nghiệm trên toàn bộ các file trong thư mục inputs/.
-Đo đạc: Thời gian chạy (ms), Bộ nhớ đỉnh (KB), Số node đã duyệt.
-Xuất kết quả ra terminal và lưu vào outputs/benchmark_results.csv.
+Automated benchmarking script evaluating all test files in the inputs/ directory.
+Profiles: Execution Time (ms), Peak Memory (KB), and Nodes Explored.
+Outputs formatted table to console and writes results to outputs/benchmark_results.csv.
 """
 
 import os
@@ -17,7 +17,7 @@ def run_benchmarks(input_dir: str = "inputs", output_csv: str = "outputs/benchma
     test_files = sorted(glob.glob(os.path.join(input_dir, "*.txt")))
 
     if not test_files:
-        print(f"[!] Khong tim thay file testcase nao trong thu muc '{input_dir}'")
+        print(f"[!] No testcase files found in directory '{input_dir}'")
         return
 
     print("=" * 90)
@@ -31,12 +31,12 @@ def run_benchmarks(input_dir: str = "inputs", output_csv: str = "outputs/benchma
         board = Board.from_file(filepath)
         size_str = f"{board.rows}x{board.cols}"
 
-        # 1. Chạy DFS
+        # 1. Run DFS
         dfs_solver = DFSSolver(board)
         res_dfs = dfs_solver.solve()
         print(f"{filename:<25} | {res_dfs['algorithm']:<18} | {'PASS' if res_dfs['success'] else 'FAIL':<8} | {res_dfs['time_ms']:<10.2f} | {res_dfs['memory_kb']:<10.2f} | {res_dfs['nodes_explored']:<8}")
 
-        # 2. Chạy A*
+        # 2. Run A*
         astar_solver = AStarSolver(board)
         res_astar = astar_solver.solve()
         print(f"{filename:<25} | {res_astar['algorithm']:<18} | {'PASS' if res_astar['success'] else 'FAIL':<8} | {res_astar['time_ms']:<10.2f} | {res_astar['memory_kb']:<10.2f} | {res_astar['nodes_explored']:<8}")
@@ -64,15 +64,14 @@ def run_benchmarks(input_dir: str = "inputs", output_csv: str = "outputs/benchma
             "steps_count": res_astar["steps_count"]
         })
 
-    # Ghi ra file CSV
+    # Save to CSV
     fieldnames = ["filename", "size", "algorithm", "success", "time_ms", "memory_kb", "nodes_explored", "steps_count"]
     with open(output_csv, mode="w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(results)
 
-    print(f"\n[OK] Da luu ket qua thuc nghiem vao: {output_csv}")
+    print(f"\n[OK] Benchmark results successfully saved to: {output_csv}")
 
 if __name__ == "__main__":
     run_benchmarks()
-

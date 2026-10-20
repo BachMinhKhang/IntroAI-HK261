@@ -1,8 +1,8 @@
 """
 solver_base.py
-Lớp cơ sở trừu tượng cho tất cả các giải thuật Tìm kiếm.
-Chuẩn hóa việc đo đạc Thời gian (time.perf_counter), Bộ nhớ (tracemalloc)
-và ghi nhận vết các bước (step-by-step trace) phục vụ Web Visualizer.
+Abstract base class for all AI Search Solvers.
+Standardizes runtime benchmarking (time.perf_counter), peak RAM profiling (tracemalloc),
+and step-by-step trace generation for the visualizer.
 """
 
 import time
@@ -20,7 +20,7 @@ class SolverBase(ABC):
 
     def record_step(self, r: int, c: int, action: str, old_mask: int, new_mask: int) -> None:
         """
-        Ghi lại một bước thay đổi trên bàn cờ.
+        Records a single state mutation step.
         - action: 'rotate', 'place', 'backtrack'
         """
         self.steps.append({
@@ -34,8 +34,8 @@ class SolverBase(ABC):
 
     def solve(self) -> dict:
         """
-        Hàm bao chuẩn: đo Thời gian (ms) và Bộ nhớ đỉnh (KB).
-        Gọi phương thức cụ thể _solve_impl() do lớp con hiện thực.
+        Wrapper execution method: records wall-clock time (ms) and peak memory (KB).
+        Invokes subclass implementation _solve_impl().
         """
         self.nodes_explored = 0
         self.steps = []
@@ -68,6 +68,5 @@ class SolverBase(ABC):
 
     @abstractmethod
     def _solve_impl(self) -> bool:
-        """Lớp con (DFS, A*) hiện thực thuật toán tìm kiếm tại đây. Trả về True nếu tìm thấy lời giải."""
+        """Subclasses (DFS, A*) implement the specific search algorithm here. Returns True if solved."""
         pass
-

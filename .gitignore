@@ -21,3 +21,8 @@ ENV/
 outputs/*.csv
 !outputs/.gitkeep
 
+
+# Local AI Agent configs & skills
+.gemini/
+.agents/
+.agent/

@@ -1,6 +1,6 @@
 """
 app.py
-Flask Web Server phục vụ giao diện Web Visualizer và các REST APIs.
+Flask Web Server providing Web Visualizer frontend and REST APIs.
 """
 
 import os
@@ -21,22 +21,22 @@ def index():
 
 @app.route("/api/levels", methods=["GET"])
 def get_levels():
-    """Lấy danh sách các file level có sẵn trong thư mục inputs/."""
+    """Returns the list of available level files in inputs/."""
     files = sorted(glob.glob(os.path.join(INPUTS_DIR, "*.txt")))
     levels = [os.path.basename(f) for f in files]
     return jsonify({"levels": levels})
 
 @app.route("/api/load_level", methods=["POST"])
 def load_level():
-    """Nạp ma trận bàn cờ từ file level được chọn."""
+    """Loads a board configuration from a level file."""
     data = request.json or {}
     filename = data.get("filename")
     if not filename:
-        return jsonify({"error": "Thieu ten file level"}), 400
+        return jsonify({"error": "Missing filename parameter"}), 400
 
     filepath = os.path.join(INPUTS_DIR, filename)
     if not os.path.exists(filepath):
-        return jsonify({"error": "File khong ton tai"}), 404
+        return jsonify({"error": "File not found"}), 404
 
     board = Board.from_file(filepath)
     return jsonify({
@@ -48,10 +48,10 @@ def load_level():
 
 @app.route("/api/generate", methods=["POST"])
 def generate():
-    """Sinh bàn cờ ngẫu nhiên kích thước NxN đảm bảo 100% có nghiệm."""
+    """Generates a random NxN board guaranteed to be solvable."""
     data = request.json or {}
     size = int(data.get("size", 4))
-    size = max(3, min(size, 8)) # Giới hạn kích thước an toàn 3x3 đến 8x8
+    size = max(3, min(size, 8)) # Safe clamp between 3x3 and 8x8
 
     scrambled_board, _ = generate_solvable_board(size, size)
     return jsonify({
@@ -62,13 +62,13 @@ def generate():
 
 @app.route("/api/solve", methods=["POST"])
 def solve():
-    """Nhận cấu hình bàn cờ và thuật toán (dfs / astar) để giải."""
+    """Solves the received grid using the requested algorithm (dfs / astar)."""
     data = request.json or {}
     algorithm = data.get("algorithm", "astar").lower()
     grid = data.get("grid")
 
     if not grid:
-        return jsonify({"error": "Thieu du lieu grid"}), 400
+        return jsonify({"error": "Missing grid data"}), 400
 
     board = Board(grid)
 
@@ -82,8 +82,7 @@ def solve():
 
 if __name__ == "__main__":
     print("=" * 60)
-    print(" Khởi động Puzzle Pipes Web Visualizer...")
-    print(" Truy cập tại: http://localhost:5000")
+    print(" Starting Puzzle Pipes AI Web Visualizer...")
+    print(" Access at: http://localhost:5000")
     print("=" * 60)
     app.run(debug=True, host="127.0.0.1", port=5000)
-

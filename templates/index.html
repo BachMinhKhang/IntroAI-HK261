@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,7 +17,7 @@
         <span class="icon">💧</span>
         <div>
           <h1>Puzzle Pipes AI Solver</h1>
-          <p class="subtitle">BTL1 Trí Tuệ Nhân Tạo - BKU (DFS Backtracking vs A* Search)</p>
+          <p class="subtitle">Intro to AI - Logic Puzzle Solver (DFS Backtracking vs A* Search)</p>
         </div>
       </div>
       <div class="badge">Python 3 + Flask</div>
@@ -25,29 +25,29 @@
 
     <!-- Main Workspace -->
     <main class="main-content">
-      <!-- Cột Trái: Bàn cờ trực quan -->
+      <!-- Left Column: Visual Board -->
       <section class="board-section">
         <div class="board-card">
           <div class="board-header">
-            <span id="level-title" class="level-title">Level: Chờ chọn...</span>
-            <span id="board-status" class="status-tag status-idle">Sẵn sàng</span>
+            <span id="level-title" class="level-title">Level: Select a level</span>
+            <span id="board-status" class="status-tag status-idle">Ready</span>
           </div>
 
           <div class="board-wrapper">
             <div id="grid-container" class="grid-container">
-              <!-- Render các ô ống nước động bằng JS -->
+              <!-- Dynamically populated pipe tiles via JS -->
             </div>
           </div>
 
-          <!-- Thanh điều khiển Step-by-Step -->
+          <!-- Step-by-Step Playback Controls -->
           <div class="playback-bar">
-            <button id="btn-prev" class="btn btn-secondary" title="Bước trước" disabled>⏮ Step</button>
-            <button id="btn-play" class="btn btn-primary" title="Tự động chạy" disabled>▶ Auto Play</button>
-            <button id="btn-next" class="btn btn-secondary" title="Bước tiếp" disabled>Step ⏭</button>
-            <button id="btn-reset" class="btn btn-outline" title="Đặt lại trạng thái ban đầu">↺ Reset</button>
+            <button id="btn-prev" class="btn btn-secondary" title="Previous step" disabled>⏮ Prev Step</button>
+            <button id="btn-play" class="btn btn-primary" title="Toggle Auto Play" disabled>▶ Auto Play</button>
+            <button id="btn-next" class="btn btn-secondary" title="Next step" disabled>Next Step ⏭</button>
+            <button id="btn-reset" class="btn btn-outline" title="Reset to initial state">↺ Reset</button>
             
             <div class="speed-control">
-              <label for="speed-slider">Tốc độ:</label>
+              <label for="speed-slider">Speed:</label>
               <input type="range" id="speed-slider" min="50" max="1000" value="300" step="50">
               <span id="speed-val">300ms</span>
             </div>
@@ -55,21 +55,21 @@
         </div>
       </section>
 
-      <!-- Cột Phải: Bảng điều khiển & Số liệu -->
+      <!-- Right Column: Control Panel & HUD Metrics -->
       <aside class="sidebar-section">
-        <!-- Card 1: Chọn bài toán & Thuật toán -->
+        <!-- Card 1: Configuration -->
         <div class="card">
-          <h2 class="card-title">⚙ Cấu hình tìm kiếm</h2>
+          <h2 class="card-title">⚙ Search Configuration</h2>
           
           <div class="form-group">
-            <label for="level-select">Chọn Level có sẵn:</label>
+            <label for="level-select">Select Predefined Level:</label>
             <select id="level-select" class="form-control">
-              <option value="">-- Đang tải danh sách... --</option>
+              <option value="">-- Loading levels... --</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label>Hoặc sinh Map ngẫu nhiên (100% có nghiệm):</label>
+            <label>Or Generate Random Solvable Map:</label>
             <div class="input-inline">
               <select id="random-size" class="form-control" style="max-width: 100px;">
                 <option value="3">3 x 3</option>
@@ -78,48 +78,48 @@
                 <option value="6">6 x 6</option>
                 <option value="7">7 x 7</option>
               </select>
-              <button id="btn-generate" class="btn btn-secondary">🎲 Tạo Map</button>
+              <button id="btn-generate" class="btn btn-secondary">🎲 Generate</button>
             </div>
           </div>
 
           <div class="form-group">
-            <label for="algo-select">Chọn thuật toán:</label>
+            <label for="algo-select">Select Search Algorithm:</label>
             <select id="algo-select" class="form-control">
               <option value="astar">A* Search (Heuristic Min-Heap)</option>
               <option value="dfs">DFS (Backtracking + Forward Pruning)</option>
             </select>
           </div>
 
-          <button id="btn-solve" class="btn btn-success btn-block" disabled>🚀 Bắt đầu giải</button>
+          <button id="btn-solve" class="btn btn-success btn-block" disabled>🚀 Solve Puzzle</button>
         </div>
 
-        <!-- Card 2: Bảng số liệu thực nghiệm thời gian thực -->
+        <!-- Card 2: Performance Metrics HUD -->
         <div class="card hud-card">
-          <h2 class="card-title">📊 Số liệu thực nghiệm</h2>
+          <h2 class="card-title">📊 Performance Metrics</h2>
           
           <div class="stats-grid">
             <div class="stat-box">
-              <span class="stat-label">Thời gian chạy</span>
+              <span class="stat-label">Execution Time</span>
               <span id="stat-time" class="stat-value">-- ms</span>
             </div>
             <div class="stat-box">
-              <span class="stat-label">Bộ nhớ đỉnh</span>
+              <span class="stat-label">Peak Memory</span>
               <span id="stat-memory" class="stat-value">-- KB</span>
             </div>
             <div class="stat-box">
-              <span class="stat-label">Số node duyệt</span>
+              <span class="stat-label">Nodes Explored</span>
               <span id="stat-nodes" class="stat-value">--</span>
             </div>
             <div class="stat-box">
-              <span class="stat-label">Tổng số bước</span>
+              <span class="stat-label">Step Progress</span>
               <span id="stat-steps" class="stat-value">0 / 0</span>
             </div>
           </div>
 
           <div class="step-log-container">
-            <div class="log-header">Nhật ký từng bước (Step Log):</div>
+            <div class="log-header">Step-by-Step Log:</div>
             <div id="step-log" class="step-log-body">
-              Chưa có dữ liệu bước giải.
+              No solution steps loaded.
             </div>
           </div>
         </div>
@@ -130,4 +130,3 @@
   <script src="/static/js/app.js"></script>
 </body>
 </html>
-

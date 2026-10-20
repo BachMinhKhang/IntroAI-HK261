@@ -1,7 +1,7 @@
 /**
  * app.js
- * Quản lý trạng thái bàn cờ, gọi REST API Flask, render đồ họa ống nước SVG
- * và điều khiển phát lại từng bước (Step-by-step Player).
+ * Board state management, Flask REST API client, SVG pipe rendering,
+ * and step-by-step playback controller.
  */
 
 const NORTH = 1;
@@ -19,50 +19,50 @@ const state = {
   isPlaying: false,
   timerId: null,
   speed: 300,
-  solved: false,
+  solved: false
 };
 
-// Khởi tạo các DOM elements
+// DOM Elements
 const elements = {
-  gridContainer: document.getElementById("grid-container"),
-  levelSelect: document.getElementById("level-select"),
-  randomSize: document.getElementById("random-size"),
-  btnGenerate: document.getElementById("btn-generate"),
-  algoSelect: document.getElementById("algo-select"),
-  btnSolve: document.getElementById("btn-solve"),
-  btnPrev: document.getElementById("btn-prev"),
-  btnPlay: document.getElementById("btn-play"),
-  btnNext: document.getElementById("btn-next"),
-  btnReset: document.getElementById("btn-reset"),
-  speedSlider: document.getElementById("speed-slider"),
-  speedVal: document.getElementById("speed-val"),
-  levelTitle: document.getElementById("level-title"),
-  boardStatus: document.getElementById("board-status"),
-  statTime: document.getElementById("stat-time"),
-  statMemory: document.getElementById("stat-memory"),
-  statNodes: document.getElementById("stat-nodes"),
-  statSteps: document.getElementById("stat-steps"),
-  stepLog: document.getElementById("step-log"),
+  gridContainer: document.getElementById('grid-container'),
+  levelSelect: document.getElementById('level-select'),
+  randomSize: document.getElementById('random-size'),
+  btnGenerate: document.getElementById('btn-generate'),
+  algoSelect: document.getElementById('algo-select'),
+  btnSolve: document.getElementById('btn-solve'),
+  btnPrev: document.getElementById('btn-prev'),
+  btnPlay: document.getElementById('btn-play'),
+  btnNext: document.getElementById('btn-next'),
+  btnReset: document.getElementById('btn-reset'),
+  speedSlider: document.getElementById('speed-slider'),
+  speedVal: document.getElementById('speed-val'),
+  levelTitle: document.getElementById('level-title'),
+  boardStatus: document.getElementById('board-status'),
+  statTime: document.getElementById('stat-time'),
+  statMemory: document.getElementById('stat-memory'),
+  statNodes: document.getElementById('stat-nodes'),
+  statSteps: document.getElementById('stat-steps'),
+  stepLog: document.getElementById('step-log')
 };
 
 // ==========================================
-// 1. Khởi động và Nạp dữ liệu
+// 1. Initialization and Data Loading
 // ==========================================
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener('DOMContentLoaded', async () => {
   setupEventListeners();
   await fetchLevels();
 });
 
 function setupEventListeners() {
-  elements.levelSelect.addEventListener("change", onLevelSelected);
-  elements.btnGenerate.addEventListener("click", onGenerateRandom);
-  elements.btnSolve.addEventListener("click", onStartSolve);
-  elements.btnNext.addEventListener("click", stepForward);
-  elements.btnPrev.addEventListener("click", stepBackward);
-  elements.btnPlay.addEventListener("click", togglePlay);
-  elements.btnReset.addEventListener("click", resetBoard);
+  elements.levelSelect.addEventListener('change', onLevelSelected);
+  elements.btnGenerate.addEventListener('click', onGenerateRandom);
+  elements.btnSolve.addEventListener('click', onStartSolve);
+  elements.btnNext.addEventListener('click', stepForward);
+  elements.btnPrev.addEventListener('click', stepBackward);
+  elements.btnPlay.addEventListener('click', togglePlay);
+  elements.btnReset.addEventListener('click', resetBoard);
 
-  elements.speedSlider.addEventListener("input", (e) => {
+  elements.speedSlider.addEventListener('input', (e) => {
     state.speed = parseInt(e.target.value);
     elements.speedVal.textContent = `${state.speed}ms`;
     if (state.isPlaying) {
@@ -74,24 +74,22 @@ function setupEventListeners() {
 
 async function fetchLevels() {
   try {
-    const res = await fetch("/api/levels");
+    const res = await fetch('/api/levels');
     const data = await res.json();
-    elements.levelSelect.innerHTML =
-      '<option value="">-- Chọn một level --</option>';
-    data.levels.forEach((lvl) => {
-      const opt = document.createElement("option");
+    elements.levelSelect.innerHTML = '<option value="">-- Select a level --</option>';
+    data.levels.forEach(lvl => {
+      const opt = document.createElement('option');
       opt.value = lvl;
       opt.textContent = lvl;
       elements.levelSelect.appendChild(opt);
     });
 
-    // Tự động nạp level đầu tiên nếu có
     if (data.levels.length > 0) {
       elements.levelSelect.value = data.levels[0];
       await loadLevelFile(data.levels[0]);
     }
   } catch (err) {
-    console.error("Lỗi nạp danh sách level:", err);
+    console.error('Failed to load levels list:', err);
   }
 }
 
@@ -104,80 +102,79 @@ async function onLevelSelected(e) {
 
 async function loadLevelFile(filename) {
   try {
-    const res = await fetch("/api/load_level", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ filename }),
+    const res = await fetch('/api/load_level', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename })
     });
     const data = await res.json();
     setNewBoard(data.grid, `Level: ${filename}`);
   } catch (err) {
-    console.error("Lỗi khi nạp file level:", err);
+    console.error('Failed to load level file:', err);
   }
 }
 
 async function onGenerateRandom() {
   const size = parseInt(elements.randomSize.value);
   try {
-    const res = await fetch("/api/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ size }),
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ size })
     });
     const data = await res.json();
     setNewBoard(data.grid, `Random Map: ${size}x${size}`);
-    elements.levelSelect.value = "";
+    elements.levelSelect.value = '';
   } catch (err) {
-    console.error("Lỗi sinh bàn cờ ngẫu nhiên:", err);
+    console.error('Failed to generate random map:', err);
   }
 }
 
 // ==========================================
-// 2. Render Đồ họa Bàn cờ SVG
+// 2. SVG Board Rendering
 // ==========================================
 function setNewBoard(grid, title) {
   stopPlay();
   state.rows = grid.length;
   state.cols = grid[0].length;
-  state.grid = grid.map((row) => [...row]);
-  state.initialGrid = grid.map((row) => [...row]);
+  state.grid = grid.map(row => [...row]);
+  state.initialGrid = grid.map(row => [...row]);
   state.steps = [];
   state.currentStepIndex = -1;
   state.solved = false;
 
   elements.levelTitle.textContent = title;
-  elements.boardStatus.textContent = "Sẵn sàng";
-  elements.boardStatus.className = "status-tag status-idle";
+  elements.boardStatus.textContent = 'Ready';
+  elements.boardStatus.className = 'status-tag status-idle';
 
-  // Cập nhật lại UI Controls
   elements.btnSolve.disabled = false;
   elements.btnPrev.disabled = true;
   elements.btnPlay.disabled = true;
   elements.btnNext.disabled = true;
 
-  elements.statTime.textContent = "-- ms";
-  elements.statMemory.textContent = "-- KB";
-  elements.statNodes.textContent = "--";
-  elements.statSteps.textContent = "0 / 0";
-  elements.stepLog.innerHTML = 'Bàn cờ đã nạp. Bấm "Bắt đầu giải" để chạy AI.';
+  elements.statTime.textContent = '-- ms';
+  elements.statMemory.textContent = '-- KB';
+  elements.statNodes.textContent = '--';
+  elements.statSteps.textContent = '0 / 0';
+  elements.stepLog.innerHTML = 'Board loaded. Click "Solve Puzzle" to run AI solver.';
 
   renderGrid();
 }
 
 function renderGrid() {
-  elements.gridContainer.innerHTML = "";
+  elements.gridContainer.innerHTML = '';
   elements.gridContainer.style.gridTemplateColumns = `repeat(${state.cols}, 60px)`;
   elements.gridContainer.style.gridTemplateRows = `repeat(${state.rows}, 60px)`;
 
   for (let r = 0; r < state.rows; r++) {
     for (let c = 0; c < state.cols; c++) {
-      const tile = document.createElement("div");
-      tile.className = "pipe-tile";
+      const tile = document.createElement('div');
+      tile.className = 'pipe-tile';
       tile.id = `tile-${r}-${c}`;
       tile.innerHTML = createPipeSVG(state.grid[r][c]);
 
-      // Cho phép người dùng tự bấm click để xoay ống thủ công nếu muốn chơi thử
-      tile.addEventListener("click", () => {
+      // Allow interactive manual rotation by clicking
+      tile.addEventListener('click', () => {
         if (!state.isPlaying) {
           rotateCellManual(r, c);
         }
@@ -198,18 +195,14 @@ function rotateCellManual(r, c) {
 
 function createPipeSVG(mask) {
   const lines = [];
-  if (mask & NORTH)
-    lines.push('<line class="pipe-line" x1="50" y1="50" x2="50" y2="0" />');
-  if (mask & EAST)
-    lines.push('<line class="pipe-line" x1="50" y1="50" x2="100" y2="50" />');
-  if (mask & SOUTH)
-    lines.push('<line class="pipe-line" x1="50" y1="50" x2="50" y2="100" />');
-  if (mask & WEST)
-    lines.push('<line class="pipe-line" x1="50" y1="50" x2="0" y2="50" />');
+  if (mask & NORTH) lines.push('<line class="pipe-line" x1="50" y1="50" x2="50" y2="0" />');
+  if (mask & EAST)  lines.push('<line class="pipe-line" x1="50" y1="50" x2="100" y2="50" />');
+  if (mask & SOUTH) lines.push('<line class="pipe-line" x1="50" y1="50" x2="50" y2="100" />');
+  if (mask & WEST)  lines.push('<line class="pipe-line" x1="50" y1="50" x2="0" y2="50" />');
 
   return `
     <svg class="pipe-svg" viewBox="0 0 100 100">
-      ${lines.join("")}
+      ${lines.join('')}
       <circle class="pipe-hub" cx="50" cy="50" r="14" />
     </svg>
   `;
@@ -220,41 +213,40 @@ function updateTile(r, c, mask, highlight = false) {
   if (!tile) return;
   tile.innerHTML = createPipeSVG(mask);
   if (highlight) {
-    tile.classList.add("highlight");
-    setTimeout(() => tile.classList.remove("highlight"), state.speed * 0.8);
+    tile.classList.add('highlight');
+    setTimeout(() => tile.classList.remove('highlight'), state.speed * 0.8);
   }
 }
 
 // ==========================================
-// 3. Giải thuật AI & Phát lại Step-by-Step
+// 3. AI Solver & Step-by-Step Playback
 // ==========================================
 async function onStartSolve() {
   const algo = elements.algoSelect.value;
   elements.btnSolve.disabled = true;
-  elements.boardStatus.textContent = "Đang giải...";
-  elements.boardStatus.className = "status-tag status-solving";
-  elements.stepLog.innerHTML = `Đang chạy thuật toán ${algo.toUpperCase()} trên Python...`;
+  elements.boardStatus.textContent = 'Solving...';
+  elements.boardStatus.className = 'status-tag status-solving';
+  elements.stepLog.innerHTML = `Running ${algo.toUpperCase()} solver on Python backend...`;
 
   try {
-    const res = await fetch("/api/solve", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const res = await fetch('/api/solve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         algorithm: algo,
-        grid: state.initialGrid,
-      }),
+        grid: state.initialGrid
+      })
     });
     const result = await res.json();
 
     if (!result.success) {
-      elements.boardStatus.textContent = "Vô nghiệm";
-      elements.boardStatus.className = "status-tag";
-      elements.stepLog.innerHTML = "Không tìm thấy lời giải cho bài toán này.";
+      elements.boardStatus.textContent = 'Unsolvable';
+      elements.boardStatus.className = 'status-tag';
+      elements.stepLog.innerHTML = 'No solution found for this board configuration.';
       elements.btnSolve.disabled = false;
       return;
     }
 
-    // Hiển thị kết quả lên HUD
     elements.statTime.textContent = `${result.time_ms} ms`;
     elements.statMemory.textContent = `${result.memory_kb} KB`;
     elements.statNodes.textContent = result.nodes_explored.toLocaleString();
@@ -263,20 +255,19 @@ async function onStartSolve() {
     state.steps = result.steps;
     state.currentStepIndex = -1;
 
-    elements.boardStatus.textContent = "Đã tìm thấy lời giải";
-    elements.boardStatus.className = "status-tag status-solved";
-    elements.stepLog.innerHTML = `Tìm thấy lời giải sau ${result.steps.length} bước. Bấm ▶ Auto Play để xem.`;
+    elements.boardStatus.textContent = 'Solved';
+    elements.boardStatus.className = 'status-tag status-solved';
+    elements.stepLog.innerHTML = `Solution found in ${result.steps.length} steps. Click ▶ Auto Play to visualize.`;
 
-    // Kích hoạt các nút playback
     elements.btnNext.disabled = false;
     elements.btnPlay.disabled = false;
     elements.btnPrev.disabled = true;
 
-    // Tự động chạy
     togglePlay();
+
   } catch (err) {
-    console.error("Lỗi khi giải:", err);
-    elements.boardStatus.textContent = "Lỗi hệ thống";
+    console.error('Solve error:', err);
+    elements.boardStatus.textContent = 'System Error';
     elements.btnSolve.disabled = false;
   }
 }
@@ -326,8 +317,8 @@ function togglePlay() {
     stopPlay();
   } else {
     state.isPlaying = true;
-    elements.btnPlay.textContent = "⏸ Pause";
-    elements.btnPlay.className = "btn btn-secondary";
+    elements.btnPlay.textContent = '⏸ Pause';
+    elements.btnPlay.className = 'btn btn-secondary';
     state.timerId = setInterval(stepForward, state.speed);
   }
 }
@@ -335,13 +326,13 @@ function togglePlay() {
 function stopPlay() {
   state.isPlaying = false;
   clearInterval(state.timerId);
-  elements.btnPlay.textContent = "▶ Auto Play";
-  elements.btnPlay.className = "btn btn-primary";
+  elements.btnPlay.textContent = '▶ Auto Play';
+  elements.btnPlay.className = 'btn btn-primary';
 }
 
 function resetBoard() {
   stopPlay();
-  state.grid = state.initialGrid.map((row) => [...row]);
+  state.grid = state.initialGrid.map(row => [...row]);
   state.currentStepIndex = -1;
   renderGrid();
   removeConnectedClasses();
@@ -349,31 +340,27 @@ function resetBoard() {
   elements.btnNext.disabled = state.steps.length === 0;
   elements.btnPrev.disabled = true;
   elements.btnSolve.disabled = false;
-  elements.boardStatus.textContent = "Sẵn sàng";
-  elements.boardStatus.className = "status-tag status-idle";
+  elements.boardStatus.textContent = 'Ready';
+  elements.boardStatus.className = 'status-tag status-idle';
 }
 
 function logStep(step) {
-  const line = document.createElement("div");
-  const actionText =
-    step.action === "backtrack" ? "Quay lui (Backtrack)" : "Đặt góc quay";
-  line.textContent = `[Bước ${step.step}] Ô (${step.r}, ${step.c}): ${actionText}`;
+  const line = document.createElement('div');
+  const actionText = step.action === 'backtrack' ? 'Backtrack' : 'Place Rotation';
+  line.textContent = `[Step ${step.step}] Cell (${step.r}, ${step.c}): ${actionText}`;
   elements.stepLog.appendChild(line);
   elements.stepLog.scrollTop = elements.stepLog.scrollHeight;
 }
 
 function checkBoardSolved() {
-  // Thêm class phát sáng cho các ống khi hoàn tất
   for (let r = 0; r < state.rows; r++) {
     for (let c = 0; c < state.cols; c++) {
       const tile = document.getElementById(`tile-${r}-${c}`);
-      if (tile) tile.classList.add("connected");
+      if (tile) tile.classList.add('connected');
     }
   }
 }
 
 function removeConnectedClasses() {
-  document
-    .querySelectorAll(".pipe-tile.connected")
-    .forEach((el) => el.classList.remove("connected"));
+  document.querySelectorAll('.pipe-tile.connected').forEach(el => el.classList.remove('connected'));
 }
