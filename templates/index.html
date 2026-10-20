@@ -1,130 +1,215 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Puzzle Pipes AI Solver - Visualizer</title>
-  <link rel="stylesheet" href="/static/css/style.css">
+  <title>Puzzle Pipes AI Solver</title>
+  
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom Pipe & Animation Styles -->
+  <link rel="stylesheet" href="/static/css/style.css">
 </head>
-<body>
-  <div class="app-container">
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200 antialiased font-sans">
+  <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
     <!-- Header -->
-    <header class="app-header">
-      <div class="logo-area">
-        <span class="icon">💧</span>
+    <header class="flex items-center justify-between bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-6 py-4 shadow-sm">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center text-2xl font-bold">
+          💧
+        </div>
         <div>
-          <h1>Puzzle Pipes AI Solver</h1>
-          <p class="subtitle">Intro to AI - Logic Puzzle Solver (DFS Backtracking vs A* Search)</p>
+          <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+            Puzzle Pipes AI
+          </h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400">
+            DFS Backtracking vs A* Search
+          </p>
         </div>
       </div>
-      <div class="badge">Python 3 + Flask</div>
+
+      <!-- Theme Toggle & Badge -->
+      <div class="flex items-center space-x-3">
+        <button id="theme-toggle" type="button" aria-label="Toggle dark mode"
+          class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-sky-500">
+          <span id="theme-icon" class="text-lg leading-none">🌙</span>
+        </button>
+        <span class="hidden sm:inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold font-mono bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
+          Python 3 + Flask
+        </span>
+      </div>
     </header>
 
     <!-- Main Workspace -->
-    <main class="main-content">
-      <!-- Left Column: Visual Board -->
-      <section class="board-section">
-        <div class="board-card">
-          <div class="board-header">
-            <span id="level-title" class="level-title">Level: Select a level</span>
-            <span id="board-status" class="status-tag status-idle">Ready</span>
-          </div>
+    <main class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-          <div class="board-wrapper">
-            <div id="grid-container" class="grid-container">
-              <!-- Dynamically populated pipe tiles via JS -->
-            </div>
-          </div>
+      <!-- Left Column: Board & Playback (8 cols) -->
+      <section class="lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+        <!-- Board Header -->
+        <div class="flex items-center justify-between">
+          <h2 id="level-title" class="font-semibold text-slate-800 dark:text-slate-200 text-sm sm:text-base">
+            Level: Loading...
+          </h2>
+          <span id="board-status" class="px-3 py-1 text-xs font-semibold rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+            Ready
+          </span>
+        </div>
 
-          <!-- Step-by-Step Playback Controls -->
-          <div class="playback-bar">
-            <button id="btn-prev" class="btn btn-secondary" title="Previous step" disabled>⏮ Prev Step</button>
-            <button id="btn-play" class="btn btn-primary" title="Toggle Auto Play" disabled>▶ Auto Play</button>
-            <button id="btn-next" class="btn btn-secondary" title="Next step" disabled>Next Step ⏭</button>
-            <button id="btn-reset" class="btn btn-outline" title="Reset to initial state">↺ Reset</button>
-            
-            <div class="speed-control">
-              <label for="speed-slider">Speed:</label>
-              <input type="range" id="speed-slider" min="50" max="1000" value="300" step="50">
-              <span id="speed-val">300ms</span>
-            </div>
+        <!-- Board Canvas -->
+        <div class="bg-slate-100/70 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800/80 rounded-xl p-4 sm:p-6 flex items-center justify-center min-h-[460px] overflow-auto">
+          <div id="grid-container" class="grid gap-2 p-2 bg-white/60 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-xl shadow-inner transition-all">
+            <!-- Dynamically generated SVG tiles -->
+          </div>
+        </div>
+
+        <!-- Step-by-Step Playback Controls -->
+        <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <button id="btn-prev" disabled class="control-btn" title="Previous step">
+            ⏮ Prev
+          </button>
+          <button id="btn-play" disabled class="control-btn-primary" title="Toggle Auto Play">
+            ▶ Auto Play
+          </button>
+          <button id="btn-next" disabled class="control-btn" title="Next step">
+            Next ⏭
+          </button>
+          <button id="btn-reset" class="control-btn" title="Reset to original puzzle">
+            ↺ Reset
+          </button>
+
+          <!-- Speed Slider -->
+          <div class="ml-auto flex items-center space-x-2 text-xs font-medium text-slate-600 dark:text-slate-400">
+            <label for="speed-slider">Speed:</label>
+            <input type="range" id="speed-slider" min="50" max="1000" value="300" step="50"
+              class="w-24 sm:w-28 accent-sky-500 cursor-pointer">
+            <span id="speed-val" class="font-mono text-sky-600 dark:text-sky-400 w-12 text-right">300ms</span>
           </div>
         </div>
       </section>
 
-      <!-- Right Column: Control Panel & HUD Metrics -->
-      <aside class="sidebar-section">
-        <!-- Card 1: Configuration -->
-        <div class="card">
-          <h2 class="card-title">⚙ Search Configuration</h2>
-          
-          <div class="form-group">
-            <label for="level-select">Select Predefined Level:</label>
-            <select id="level-select" class="form-control">
+      <!-- Right Column: Settings & Metrics (4 cols) -->
+      <aside class="lg:col-span-4 space-y-6">
+
+        <!-- Controls Card -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+          <h2 class="text-sm font-semibold text-slate-900 dark:text-slate-100 pb-2 border-b border-slate-100 dark:border-slate-800">
+            Search Setup
+          </h2>
+
+          <!-- Level Select -->
+          <div class="space-y-1.5">
+            <label for="level-select" class="text-xs font-medium text-slate-600 dark:text-slate-400">
+              Predefined Level:
+            </label>
+            <select id="level-select" class="form-input">
               <option value="">-- Loading levels... --</option>
             </select>
           </div>
 
-          <div class="form-group">
-            <label>Or Generate Random Solvable Map:</label>
-            <div class="input-inline">
-              <select id="random-size" class="form-control" style="max-width: 100px;">
+          <!-- Random Generator -->
+          <div class="space-y-1.5">
+            <label class="text-xs font-medium text-slate-600 dark:text-slate-400">
+              Or Generate Random Map:
+            </label>
+            <div class="flex space-x-2">
+              <select id="random-size" class="form-input w-24">
                 <option value="3">3 x 3</option>
                 <option value="4" selected>4 x 4</option>
                 <option value="5">5 x 5</option>
                 <option value="6">6 x 6</option>
                 <option value="7">7 x 7</option>
               </select>
-              <button id="btn-generate" class="btn btn-secondary">🎲 Generate</button>
+              <button id="btn-generate" type="button" class="flex-1 control-btn">
+                🎲 Generate
+              </button>
             </div>
           </div>
 
-          <div class="form-group">
-            <label for="algo-select">Select Search Algorithm:</label>
-            <select id="algo-select" class="form-control">
-              <option value="astar">A* Search (Heuristic Min-Heap)</option>
-              <option value="dfs">DFS (Backtracking + Forward Pruning)</option>
+          <!-- Algorithm Select -->
+          <div class="space-y-1.5">
+            <label for="algo-select" class="text-xs font-medium text-slate-600 dark:text-slate-400">
+              Algorithm:
+            </label>
+            <select id="algo-select" class="form-input font-medium">
+              <option value="astar">A* Search (Min-Heap)</option>
+              <option value="dfs">DFS (Backtracking + Pruning)</option>
             </select>
           </div>
 
-          <button id="btn-solve" class="btn btn-success btn-block" disabled>🚀 Solve Puzzle</button>
+          <!-- Action Button -->
+          <button id="btn-solve" disabled type="button"
+            class="w-full py-3 px-4 rounded-xl font-semibold text-sm text-white bg-sky-600 hover:bg-sky-500 active:bg-sky-700 shadow-md shadow-sky-600/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+            🚀 Solve Puzzle
+          </button>
         </div>
 
-        <!-- Card 2: Performance Metrics HUD -->
-        <div class="card hud-card">
-          <h2 class="card-title">📊 Performance Metrics</h2>
-          
-          <div class="stats-grid">
-            <div class="stat-box">
-              <span class="stat-label">Execution Time</span>
-              <span id="stat-time" class="stat-value">-- ms</span>
+        <!-- Metrics HUD Card -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+          <h2 class="text-sm font-semibold text-slate-900 dark:text-slate-100 pb-2 border-b border-slate-100 dark:border-slate-800">
+            Performance Metrics
+          </h2>
+
+          <!-- 4 Stat Tiles -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="metric-box">
+              <span class="metric-label">Execution Time</span>
+              <span id="stat-time" class="metric-value">-- ms</span>
             </div>
-            <div class="stat-box">
-              <span class="stat-label">Peak Memory</span>
-              <span id="stat-memory" class="stat-value">-- KB</span>
+            <div class="metric-box">
+              <span class="metric-label">Peak Memory</span>
+              <span id="stat-memory" class="metric-value">-- KB</span>
             </div>
-            <div class="stat-box">
-              <span class="stat-label">Nodes Explored</span>
-              <span id="stat-nodes" class="stat-value">--</span>
+            <div class="metric-box">
+              <span class="metric-label">Nodes Explored</span>
+              <span id="stat-nodes" class="metric-value">--</span>
             </div>
-            <div class="stat-box">
-              <span class="stat-label">Step Progress</span>
-              <span id="stat-steps" class="stat-value">0 / 0</span>
+            <div class="metric-box">
+              <span class="metric-label">Step Progress</span>
+              <span id="stat-steps" class="metric-value">0 / 0</span>
             </div>
           </div>
 
-          <div class="step-log-container">
-            <div class="log-header">Step-by-Step Log:</div>
-            <div id="step-log" class="step-log-body">
-              No solution steps loaded.
+          <!-- Step Log -->
+          <div class="space-y-1.5">
+            <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Step Log:</div>
+            <div id="step-log" class="h-28 bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800/80 rounded-xl p-3 font-mono text-xs text-slate-600 dark:text-slate-400 overflow-y-auto space-y-1">
+              Ready to solve.
             </div>
           </div>
         </div>
+
       </aside>
     </main>
+
   </div>
 
   <script src="/static/js/app.js"></script>

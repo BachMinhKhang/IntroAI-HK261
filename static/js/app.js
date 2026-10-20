@@ -1,7 +1,7 @@
 /**
  * app.js
  * Board state management, Flask REST API client, SVG pipe rendering,
- * and step-by-step playback controller.
+ * Light/Dark theme toggle, and step-by-step playback controller.
  */
 
 const NORTH = 1;
@@ -42,18 +42,42 @@ const elements = {
   statMemory: document.getElementById('stat-memory'),
   statNodes: document.getElementById('stat-nodes'),
   statSteps: document.getElementById('stat-steps'),
-  stepLog: document.getElementById('step-log')
+  stepLog: document.getElementById('step-log'),
+  themeToggle: document.getElementById('theme-toggle'),
+  themeIcon: document.getElementById('theme-icon')
 };
 
 // ==========================================
-// 1. Initialization and Data Loading
+// 1. Initialization, Themes, and Data Loading
 // ==========================================
 document.addEventListener('DOMContentLoaded', async () => {
+  initTheme();
   setupEventListeners();
   await fetchLevels();
 });
 
+function initTheme() {
+  const saved = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const isDark = saved === 'dark' || (!saved && prefersDark);
+
+  if (isDark) {
+    document.documentElement.classList.add('dark');
+    elements.themeIcon.textContent = '☀️';
+  } else {
+    document.documentElement.classList.remove('dark');
+    elements.themeIcon.textContent = '🌙';
+  }
+}
+
+function toggleTheme() {
+  const isDark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  elements.themeIcon.textContent = isDark ? '☀️' : '🌙';
+}
+
 function setupEventListeners() {
+  elements.themeToggle.addEventListener('click', toggleTheme);
   elements.levelSelect.addEventListener('change', onLevelSelected);
   elements.btnGenerate.addEventListener('click', onGenerateRandom);
   elements.btnSolve.addEventListener('click', onStartSolve);
@@ -133,6 +157,20 @@ async function onGenerateRandom() {
 // ==========================================
 // 2. SVG Board Rendering
 // ==========================================
+function setStatus(text, type = 'idle') {
+  elements.boardStatus.textContent = text;
+  const base = 'px-3 py-1 text-xs font-semibold rounded-full border transition-colors ';
+  if (type === 'solving') {
+    elements.boardStatus.className = base + 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800';
+  } else if (type === 'solved') {
+    elements.boardStatus.className = base + 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+  } else if (type === 'unsolvable') {
+    elements.boardStatus.className = base + 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800';
+  } else {
+    elements.boardStatus.className = base + 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700';
+  }
+}
+
 function setNewBoard(grid, title) {
   stopPlay();
   state.rows = grid.length;
@@ -144,8 +182,7 @@ function setNewBoard(grid, title) {
   state.solved = false;
 
   elements.levelTitle.textContent = title;
-  elements.boardStatus.textContent = 'Ready';
-  elements.boardStatus.className = 'status-tag status-idle';
+  setStatus('Ready', 'idle');
 
   elements.btnSolve.disabled = false;
   elements.btnPrev.disabled = true;
@@ -156,15 +193,15 @@ function setNewBoard(grid, title) {
   elements.statMemory.textContent = '-- KB';
   elements.statNodes.textContent = '--';
   elements.statSteps.textContent = '0 / 0';
-  elements.stepLog.innerHTML = 'Board loaded. Click "Solve Puzzle" to run AI solver.';
+  elements.stepLog.innerHTML = '<div>Board loaded. Click "Solve Puzzle" to run search.</div>';
 
   renderGrid();
 }
 
 function renderGrid() {
   elements.gridContainer.innerHTML = '';
-  elements.gridContainer.style.gridTemplateColumns = `repeat(${state.cols}, 60px)`;
-  elements.gridContainer.style.gridTemplateRows = `repeat(${state.rows}, 60px)`;
+  elements.gridContainer.style.gridTemplateColumns = `repeat(${state.cols}, 56px)`;
+  elements.gridContainer.style.gridTemplateRows = `repeat(${state.rows}, 56px)`;
 
   for (let r = 0; r < state.rows; r++) {
     for (let c = 0; c < state.cols; c++) {
@@ -173,7 +210,7 @@ function renderGrid() {
       tile.id = `tile-${r}-${c}`;
       tile.innerHTML = createPipeSVG(state.grid[r][c]);
 
-      // Allow interactive manual rotation by clicking
+      // Allow interactive rotation by clicking
       tile.addEventListener('click', () => {
         if (!state.isPlaying) {
           rotateCellManual(r, c);
@@ -214,19 +251,18 @@ function updateTile(r, c, mask, highlight = false) {
   tile.innerHTML = createPipeSVG(mask);
   if (highlight) {
     tile.classList.add('highlight');
-    setTimeout(() => tile.classList.remove('highlight'), state.speed * 0.8);
+    setTimeout(() => tile.classList.remove('highlight'), state.speed * 0.7);
   }
 }
 
 // ==========================================
-// 3. AI Solver & Step-by-Step Playback
+// 3. AI Solver & Step Playback
 // ==========================================
 async function onStartSolve() {
   const algo = elements.algoSelect.value;
   elements.btnSolve.disabled = true;
-  elements.boardStatus.textContent = 'Solving...';
-  elements.boardStatus.className = 'status-tag status-solving';
-  elements.stepLog.innerHTML = `Running ${algo.toUpperCase()} solver on Python backend...`;
+  setStatus('Solving...', 'solving');
+  elements.stepLog.innerHTML = `<div>Running ${algo.toUpperCase()} solver on backend...</div>`;
 
   try {
     const res = await fetch('/api/solve', {
@@ -240,9 +276,8 @@ async function onStartSolve() {
     const result = await res.json();
 
     if (!result.success) {
-      elements.boardStatus.textContent = 'Unsolvable';
-      elements.boardStatus.className = 'status-tag';
-      elements.stepLog.innerHTML = 'No solution found for this board configuration.';
+      setStatus('Unsolvable', 'unsolvable');
+      elements.stepLog.innerHTML = '<div>No solution found for this board configuration.</div>';
       elements.btnSolve.disabled = false;
       return;
     }
@@ -255,9 +290,8 @@ async function onStartSolve() {
     state.steps = result.steps;
     state.currentStepIndex = -1;
 
-    elements.boardStatus.textContent = 'Solved';
-    elements.boardStatus.className = 'status-tag status-solved';
-    elements.stepLog.innerHTML = `Solution found in ${result.steps.length} steps. Click ▶ Auto Play to visualize.`;
+    setStatus('Solved', 'solved');
+    elements.stepLog.innerHTML = `<div>Solution found (${result.steps.length} steps). Click Auto Play to view.</div>`;
 
     elements.btnNext.disabled = false;
     elements.btnPlay.disabled = false;
@@ -267,7 +301,7 @@ async function onStartSolve() {
 
   } catch (err) {
     console.error('Solve error:', err);
-    elements.boardStatus.textContent = 'System Error';
+    setStatus('Error', 'unsolvable');
     elements.btnSolve.disabled = false;
   }
 }
@@ -318,7 +352,7 @@ function togglePlay() {
   } else {
     state.isPlaying = true;
     elements.btnPlay.textContent = '⏸ Pause';
-    elements.btnPlay.className = 'btn btn-secondary';
+    elements.btnPlay.className = 'control-btn';
     state.timerId = setInterval(stepForward, state.speed);
   }
 }
@@ -327,7 +361,7 @@ function stopPlay() {
   state.isPlaying = false;
   clearInterval(state.timerId);
   elements.btnPlay.textContent = '▶ Auto Play';
-  elements.btnPlay.className = 'btn btn-primary';
+  elements.btnPlay.className = 'control-btn-primary';
 }
 
 function resetBoard() {
@@ -340,14 +374,13 @@ function resetBoard() {
   elements.btnNext.disabled = state.steps.length === 0;
   elements.btnPrev.disabled = true;
   elements.btnSolve.disabled = false;
-  elements.boardStatus.textContent = 'Ready';
-  elements.boardStatus.className = 'status-tag status-idle';
+  setStatus('Ready', 'idle');
 }
 
 function logStep(step) {
   const line = document.createElement('div');
   const actionText = step.action === 'backtrack' ? 'Backtrack' : 'Place Rotation';
-  line.textContent = `[Step ${step.step}] Cell (${step.r}, ${step.c}): ${actionText}`;
+  line.textContent = `[Step ${step.step}] (${step.r}, ${step.c}): ${actionText}`;
   elements.stepLog.appendChild(line);
   elements.stepLog.scrollTop = elements.stepLog.scrollHeight;
 }
