@@ -1,0 +1,23 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# IDEs & Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Outputs & Temporary files
+outputs/*.csv
+!outputs/.gitkeep
+

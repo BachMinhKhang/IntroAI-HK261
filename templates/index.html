@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Puzzle Pipes AI Solver - Visualizer</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo-area">
+        <span class="icon">💧</span>
+        <div>
+          <h1>Puzzle Pipes AI Solver</h1>
+          <p class="subtitle">BTL1 Trí Tuệ Nhân Tạo - BKU (DFS Backtracking vs A* Search)</p>
+        </div>
+      </div>
+      <div class="badge">Python 3 + Flask</div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="main-content">
+      <!-- Cột Trái: Bàn cờ trực quan -->
+      <section class="board-section">
+        <div class="board-card">
+          <div class="board-header">
+            <span id="level-title" class="level-title">Level: Chờ chọn...</span>
+            <span id="board-status" class="status-tag status-idle">Sẵn sàng</span>
+          </div>
+
+          <div class="board-wrapper">
+            <div id="grid-container" class="grid-container">
+              <!-- Render các ô ống nước động bằng JS -->
+            </div>
+          </div>
+
+          <!-- Thanh điều khiển Step-by-Step -->
+          <div class="playback-bar">
+            <button id="btn-prev" class="btn btn-secondary" title="Bước trước" disabled>⏮ Step</button>
+            <button id="btn-play" class="btn btn-primary" title="Tự động chạy" disabled>▶ Auto Play</button>
+            <button id="btn-next" class="btn btn-secondary" title="Bước tiếp" disabled>Step ⏭</button>
+            <button id="btn-reset" class="btn btn-outline" title="Đặt lại trạng thái ban đầu">↺ Reset</button>
+            
+            <div class="speed-control">
+              <label for="speed-slider">Tốc độ:</label>
+              <input type="range" id="speed-slider" min="50" max="1000" value="300" step="50">
+              <span id="speed-val">300ms</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cột Phải: Bảng điều khiển & Số liệu -->
+      <aside class="sidebar-section">
+        <!-- Card 1: Chọn bài toán & Thuật toán -->
+        <div class="card">
+          <h2 class="card-title">⚙ Cấu hình tìm kiếm</h2>
+          
+          <div class="form-group">
+            <label for="level-select">Chọn Level có sẵn:</label>
+            <select id="level-select" class="form-control">
+              <option value="">-- Đang tải danh sách... --</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Hoặc sinh Map ngẫu nhiên (100% có nghiệm):</label>
+            <div class="input-inline">
+              <select id="random-size" class="form-control" style="max-width: 100px;">
+                <option value="3">3 x 3</option>
+                <option value="4" selected>4 x 4</option>
+                <option value="5">5 x 5</option>
+                <option value="6">6 x 6</option>
+                <option value="7">7 x 7</option>
+              </select>
+              <button id="btn-generate" class="btn btn-secondary">🎲 Tạo Map</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="algo-select">Chọn thuật toán:</label>
+            <select id="algo-select" class="form-control">
+              <option value="astar">A* Search (Heuristic Min-Heap)</option>
+              <option value="dfs">DFS (Backtracking + Forward Pruning)</option>
+            </select>
+          </div>
+
+          <button id="btn-solve" class="btn btn-success btn-block" disabled>🚀 Bắt đầu giải</button>
+        </div>
+
+        <!-- Card 2: Bảng số liệu thực nghiệm thời gian thực -->
+        <div class="card hud-card">
+          <h2 class="card-title">📊 Số liệu thực nghiệm</h2>
+          
+          <div class="stats-grid">
+            <div class="stat-box">
+              <span class="stat-label">Thời gian chạy</span>
+              <span id="stat-time" class="stat-value">-- ms</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Bộ nhớ đỉnh</span>
+              <span id="stat-memory" class="stat-value">-- KB</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Số node duyệt</span>
+              <span id="stat-nodes" class="stat-value">--</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Tổng số bước</span>
+              <span id="stat-steps" class="stat-value">0 / 0</span>
+            </div>
+          </div>
+
+          <div class="step-log-container">
+            <div class="log-header">Nhật ký từng bước (Step Log):</div>
+            <div id="step-log" class="step-log-body">
+              Chưa có dữ liệu bước giải.
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
+
