@@ -45,17 +45,27 @@ def start_generator(size_str: str):
     except ValueError:
         print("[!] Size must be an integer (e.g.: python main.py --generate 5)")
 
+def start_plotting():
+    from src.plot_benchmark import plot_benchmarks
+    print("=" * 60)
+    print(" [OK] Generating visual benchmark comparison charts...")
+    print("=" * 60)
+    plot_benchmarks()
+
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         flag = sys.argv[1].lower()
         if flag == "--benchmark":
             start_benchmark()
+        elif flag == "--plot":
+            start_plotting()
         elif flag == "--generate" and len(sys.argv) > 2:
             start_generator(sys.argv[2])
         else:
             print("Valid arguments:")
             print("  python main.py             : Launch Web Visualizer")
-            print("  python main.py --benchmark : Run automated benchmark evaluation")
+            print("  python main.py --benchmark : Run automated benchmark evaluation and plot")
+            print("  python main.py --plot      : Generate visual charts from existing CSV")
             print("  python main.py --generate N: Generate a new NxN level file")
     else:
         start_web()

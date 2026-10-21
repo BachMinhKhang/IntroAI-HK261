@@ -33,8 +33,12 @@ puzzle-pipes-ai/
 │   ├── level_6x6_medium.txt
 │   ├── level_7x7_hard.txt
 │   └── level_8x8_hard.txt
-├── outputs/                        # Chứa kết quả đo đạc thực nghiệm
-│   └── benchmark_results.csv
+├── outputs/                        # Chứa kết quả đo đạc thực nghiệm & biểu đồ
+│   ├── benchmark_results.csv       # File số liệu chi tiết (Time, RAM, Nodes)
+│   ├── benchmark_summary.png       # Biểu đồ tổng hợp 3 trong 1 (dùng cho Báo cáo)
+│   ├── chart_time.png              # Biểu đồ thời gian thực thi (ms)
+│   ├── chart_memory.png            # Biểu đồ bộ nhớ RAM đỉnh (KB)
+│   └── chart_nodes.png             # Biểu đồ số node đã duyệt
 ├── src/
 │   ├── __init__.py
 │   ├── pipe_constants.py           # Bitmask 4 hướng (N, E, S, W) và phép xoay tròn bit
@@ -43,7 +47,8 @@ puzzle-pipes-ai/
 │   ├── blind_search.py             # Hiện thực DFS Backtracking (Thành viên 1)
 │   ├── heuristic_search.py         # Hiện thực A* Search (Thành viên 2)
 │   ├── generator.py                # Sinh bàn cờ ngẫu nhiên có nghiệm (Spanning Tree)
-│   └── benchmark.py                # Script chạy tự động tất cả test cases xuất CSV
+│   ├── benchmark.py                # Script chạy tự động tất cả test cases xuất CSV
+│   └── plot_benchmark.py           # Script tự động vẽ biểu đồ phân tích xuất file ảnh PNG
 ├── templates/
 │   └── index.html                  # Giao diện Web Visualizer
 ├── static/
@@ -77,13 +82,21 @@ python main.py
 *(Hoặc truy cập trực tiếp bằng trình duyệt tại: `http://localhost:5000`)*
 
 ### 3.3. Chạy Benchmark đo đạc thời gian & bộ nhớ
-Để chạy kiểm thử tự động toàn bộ các file trong thư mục `inputs/` và xuất kết quả ra file CSV:
+Để chạy kiểm thử tự động toàn bộ các file trong thư mục `inputs/`, xuất kết quả ra file CSV và **tự động vẽ biểu đồ PNG**:
 
 ```bash
 python main.py --benchmark
 ```
 
-### 3.4. Sinh thêm file testcase mới
+### 3.4. Tự động vẽ lại Biểu đồ Đánh giá (Charts)
+Nếu bạn đã có sẵn file `benchmark_results.csv` và chỉ muốn vẽ lại các biểu đồ phân tích để chèn vào Báo cáo & Slide:
+
+```bash
+python main.py --plot
+```
+*(Các file biểu đồ chuẩn 300 DPI sẽ được lưu tại thư mục `outputs/`)*
+
+### 3.5. Sinh thêm file testcase mới
 ```bash
 # Sinh bàn cờ kích thước 5x5 mới vào inputs/
 python main.py --generate 5

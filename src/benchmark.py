@@ -73,5 +73,12 @@ def run_benchmarks(input_dir: str = "inputs", output_csv: str = "outputs/benchma
 
     print(f"\n[OK] Benchmark results successfully saved to: {output_csv}")
 
+    # Generate visual charts automatically
+    try:
+        from src.plot_benchmark import plot_benchmarks
+        plot_benchmarks(output_csv, os.path.dirname(output_csv))
+    except Exception as e:
+        print(f"[!] Warning: Could not generate plots ({e})")
+
 if __name__ == "__main__":
     run_benchmarks()
