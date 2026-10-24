@@ -2,19 +2,34 @@
 benchmark.py
 Automated benchmarking script evaluating all test files in the inputs/ directory.
 Profiles: Execution Time (ms), Peak Memory (KB), and Nodes Explored.
-Outputs formatted table to console and writes results to outputs/benchmark_results.csv.
+Outputs formatted table to console, writes results to outputs/benchmark_results.csv,
+and calls plot_benchmark to generate publication-quality visual charts.
 """
 
 import os
 import glob
+import re
 import csv
 from src.board import Board
 from src.blind_search import DFSSolver
 from src.heuristic_search import AStarSolver
+from src.plot_benchmark import plot_benchmarks
+
+def get_grid_dimension(filepath: str) -> tuple[int, int]:
+    """Extracts numeric dimensions (total_cells, rows) for proper numerical sorting."""
+    filename = os.path.basename(filepath)
+    match = re.search(r'(\d+)x(\d+)', filename)
+    if match:
+        r, c = int(match.group(1)), int(match.group(2))
+        return (r * c, r)
+    return (0, 0)
 
 def run_benchmarks(input_dir: str = "inputs", output_csv: str = "outputs/benchmark_results.csv"):
     os.makedirs(os.path.dirname(output_csv), exist_ok=True)
-    test_files = sorted(glob.glob(os.path.join(input_dir, "*.txt")))
+    
+    # Only take .txt files directly in input_dir, sorted strictly by grid dimension (smallest to largest)
+    raw_files = [f for f in glob.glob(os.path.join(input_dir, "*.txt")) if os.path.isfile(f)]
+    test_files = sorted(raw_files, key=get_grid_dimension)
 
     if not test_files:
         print(f"[!] No testcase files found in directory '{input_dir}'")
@@ -73,12 +88,11 @@ def run_benchmarks(input_dir: str = "inputs", output_csv: str = "outputs/benchma
 
     print(f"\n[OK] Benchmark results successfully saved to: {output_csv}")
 
-    # Generate visual charts automatically
+    # Generate charts
     try:
-        from src.plot_benchmark import plot_benchmarks
         plot_benchmarks(output_csv, os.path.dirname(output_csv))
     except Exception as e:
-        print(f"[!] Warning: Could not generate plots ({e})")
+        print(f"[!] Chart generation warning: {e}")
 
 if __name__ == "__main__":
     run_benchmarks()
