@@ -198,15 +198,33 @@ function setNewBoard(grid, title) {
   renderGrid();
 }
 
+function getTileSize(cols, rows) {
+  const maxDim = Math.max(cols, rows);
+  if (maxDim <= 4) return 56;
+  if (maxDim <= 6) return 48;
+  if (maxDim <= 8) return 40;
+  if (maxDim <= 10) return 34;
+  if (maxDim <= 15) return 24;
+  if (maxDim <= 20) return 18;
+  return 15;
+}
+
 function renderGrid() {
   elements.gridContainer.innerHTML = '';
-  elements.gridContainer.style.gridTemplateColumns = `repeat(${state.cols}, 56px)`;
-  elements.gridContainer.style.gridTemplateRows = `repeat(${state.rows}, 56px)`;
+  const maxDim = Math.max(state.cols, state.rows);
+  const tileSize = getTileSize(state.cols, state.rows);
+  const gap = maxDim >= 15 ? 1 : (maxDim >= 10 ? 2 : 4);
+
+  elements.gridContainer.style.gap = `${gap}px`;
+  elements.gridContainer.style.gridTemplateColumns = `repeat(${state.cols}, ${tileSize}px)`;
+  elements.gridContainer.style.gridTemplateRows = `repeat(${state.rows}, ${tileSize}px)`;
 
   for (let r = 0; r < state.rows; r++) {
     for (let c = 0; c < state.cols; c++) {
       const tile = document.createElement('div');
       tile.className = 'pipe-tile';
+      tile.style.width = `${tileSize}px`;
+      tile.style.height = `${tileSize}px`;
       tile.id = `tile-${r}-${c}`;
       tile.innerHTML = createPipeSVG(state.grid[r][c]);
 

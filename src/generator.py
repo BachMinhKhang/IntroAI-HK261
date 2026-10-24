@@ -4,6 +4,10 @@ Generates 100% solvable Puzzle Pipes boards using Randomized Spanning Tree on a 
 """
 
 import random
+import sys
+
+# Support spanning tree generation for large grids up to 25x25 (625 cells)
+sys.setrecursionlimit(200000)
 from src.pipe_constants import (
     NORTH, EAST, SOUTH, WEST,
     DELTAS, OPPOSITE, rotate_cw

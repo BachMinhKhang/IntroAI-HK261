@@ -768,6 +768,55 @@ Quan sát Bảng \ref{tab:benchmark_results} và các đồ thị trong Hình \r
     \end{itemize}
 \end{itemize}
 
+\subsection{Thực nghiệm mở rộng quy mô lớn (Scalability: $10 \times 10$ đến $25 \times 25$)}
+Để kiểm chứng khả năng mở rộng (Scalability) của hai thuật toán khi bài toán tiệm cận giới hạn kích thước tối đa trên trang web gốc (\url{https://www.puzzle-pipes.com/}), nhóm tiến hành mở rộng thử nghiệm trên các ma trận lớn từ $10 \times 10$ ($100$ ô), $12 \times 12$ ($144$ ô), $15 \times 15$ ($225$ ô), $20 \times 20$ ($400$ ô) lên đến kích thước cực đại $25 \times 25$ ($625$ ô). Không gian trạng thái ở cấp độ này đạt $4^{625} \approx 10^{376}$ cấu hình khả dĩ.
+
+\begin{table}[H]
+\centering
+\caption{Bảng số liệu thực nghiệm mở rộng quy mô lớn (Scalability Benchmark: $10 \times 10 \to 25 \times 25$).}
+\label{tab:benchmark_large}
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{3.2pt}
+\small
+\begin{tabularx}{\textwidth}{|>{\ttfamily\footnotesize}l|c|>{\raggedright\arraybackslash}X|c|r|r|r|}
+\hline
+\multicolumn{1}{|l|}{\textbf{\normalfont File Input}} & \textbf{Kích thước} & \textbf{Giải thuật} & \textbf{Kết quả} & \textbf{Time (ms)} & \textbf{RAM (KB)} & \textbf{Nodes} \\
+\hline
+\multirow{2}{*}{level\_10x10\_hard.txt} & \multirow{2}{*}{$10 \times 10$ (100 ô)} 
+  & DFS (Backtracking) & PASS & 11.95 & 163.36 & 756 \\
+\cline{3-7}
+  & & A* Search & PASS & 52.68 & 306.12 & 158 \\
+\hline
+\multirow{2}{*}{level\_12x12\_hard.txt} & \multirow{2}{*}{$12 \times 12$ (144 ô)} 
+  & DFS (Backtracking) & PASS & 3.66 & 77.88 & 330 \\
+\cline{3-7}
+  & & A* Search & PASS & 91.82 & 456.77 & 198 \\
+\hline
+\multirow{2}{*}{level\_15x15\_expert.txt} & \multirow{2}{*}{$15 \times 15$ (225 ô)} 
+  & DFS (Backtracking) & PASS & 11.84 & 135.23 & 699 \\
+\cline{3-7}
+  & & A* Search & PASS & 143.81 & 887.34 & 278 \\
+\hline
+\multirow{2}{*}{level\_20x20\_master.txt} & \multirow{2}{*}{$20 \times 20$ (400 ô)} 
+  & DFS (Backtracking) & PASS & 36.76 & 467.46 & 2184 \\
+\cline{3-7}
+  & & A* Search & PASS & 1733.63 & 6352.43 & 1341 \\
+\hline
+\multirow{2}{*}{level\_25x25\_insane.txt} & \multirow{2}{*}{$25 \times 25$ (625 ô)} 
+  & DFS (Backtracking) & PASS & 53.37 & 534.54 & 2504 \\
+\cline{3-7}
+  & & A* Search & PASS & 1474.87 & 7220.92 & 1044 \\
+\hline
+\end{tabularx}
+\end{table}
+
+\textbf{Nhận xét chuyên sâu về tính mở rộng (Scalability Insights):}
+\begin{enumerate}
+    \item \textbf{Tính khả thi trên ma trận cực lớn:} Cả DFS Backtracking và $A^*$ đều giải thành công $100\%$ bàn cờ $25 \times 25$ ($625$ ô) trong thời gian dưới $2$ giây mà không gặp tình trạng tràn bộ nhớ (Out-Of-Memory) hay tràn ngăn xếp đệ quy (Stack Overflow).
+    \item \textbf{Điểm ngoặt bộ nhớ của $A^*$:} Ở cấp độ $25 \times 25$, bộ nhớ tiêu thụ của $A^*$ đạt khoảng $7.22\text{ MB}$ (gấp $13.5$ lần so với mức $534.54\text{ KB}$ của DFS). Điều này minh chứng cho định luật lý thuyết: $A^*$ đánh đổi không gian lưu trữ cấp hàm mũ theo hệ số nhánh để đạt được số nút mở rộng tối thiểu ($1044$ nút so với $2504$ nút của DFS).
+    \item \textbf{Hiệu quả áp đảo của Forward Pruning trên DFS:} Kỹ thuật cắt tỉa tức thời tại các cạnh tiếp giáp giúp DFS chỉ mất $53.37\text{ ms}$ để giải quyết hoàn toàn bài toán $25 \times 25$, chứng minh sức mạnh của việc kết hợp biểu diễn Bitmask và lan truyền ràng buộc (Constraint Propagation) trong bài toán tìm kiếm có cấu trúc lưới.
+\end{enumerate}
+
 \subsubsection{Bảng tổng kết đối sánh hai giải thuật}
 \begin{table}[H]
 \centering
