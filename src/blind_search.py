@@ -4,9 +4,13 @@ Blind Search Algorithm: Depth-First Search (DFS) with Backtracking and Forward P
 (Lead: Member 1)
 """
 
+import sys
 from src.solver_base import SolverBase
 from src.pipe_constants import get_possible_rotations
 from src.board import Board
+
+# Support deep recursion up to 25x25 (625 levels)
+sys.setrecursionlimit(200000)
 
 class DFSSolver(SolverBase):
     def __init__(self, board: Board):

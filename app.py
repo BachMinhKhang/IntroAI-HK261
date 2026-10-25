@@ -4,7 +4,11 @@ Flask Web Server providing Web Visualizer frontend and REST APIs.
 """
 
 import os
+import sys
 import glob
+
+# Ensure sufficient recursion depth for large puzzles (up to 25x25)
+sys.setrecursionlimit(200000)
 from flask import Flask, render_template, request, jsonify
 from src.board import Board
 from src.blind_search import DFSSolver
@@ -51,7 +55,7 @@ def generate():
     """Generates a random NxN board guaranteed to be solvable."""
     data = request.json or {}
     size = int(data.get("size", 4))
-    size = max(3, min(size, 8)) # Safe clamp between 3x3 and 8x8
+    size = max(3, min(size, 25)) # Safe clamp supporting up to 25x25 (puzzle-pipes.com maximum)
 
     scrambled_board, _ = generate_solvable_board(size, size)
     return jsonify({
