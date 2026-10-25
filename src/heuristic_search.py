@@ -16,13 +16,21 @@ class AStarSolver(SolverBase):
     def _heuristic(self, r: int, c: int, candidate_mask: int) -> int:
         """
         Admissible Heuristic function h(n):
-        Estimates the remaining distance to goal state.
-        Counts unassigned cells plus half the current port mismatch conflicts.
-        Admissible property: h(n) <= h*(n), never overestimates actual cost.
+        Estimates the remaining cost to reach the goal state.
+
+        h(n) = ceil(CountConflicts(n) / 2)
+
+        Admissibility proof (h(n) <= h*(n)):
+          - CountConflicts counts every open/mismatched port on the board.
+          - Each future cell assignment can fix at most 2 conflict ports
+            (the port pointing toward the left neighbor and the port pointing
+            toward the top neighbor that are now being resolved).
+          - Therefore at least ceil(conflicts / 2) more assignments are needed,
+            meaning h(n) <= h*(n) = actual minimum remaining cost.
+          - At the goal state CountConflicts == 0, so h(goal) == 0. Correct.
         """
-        remaining_cells = (self.board.rows * self.board.cols) - (r * self.board.cols + c + 1)
         conflicts = self.board.count_conflicts()
-        return remaining_cells + (conflicts // 2)
+        return (conflicts + 1) // 2
 
     def _solve_impl(self) -> bool:
         """
@@ -35,7 +43,8 @@ class AStarSolver(SolverBase):
 
         tie_breaker = 0
         open_set = []
-        initial_h = self.board.count_conflicts() // 2
+        initial_conflicts = self.board.count_conflicts()
+        initial_h = (initial_conflicts + 1) // 2
         heapq.heappush(open_set, (initial_h, initial_h, tie_breaker, 0, start_grid, []))
 
         visited_states = set()

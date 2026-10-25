@@ -473,22 +473,26 @@ Trong đó:
     \begin{equation}
         g(n) = k = r \times C + c + 1
     \end{equation}
-    \item Hàm ước lượng Heuristic $h(n)$: Ước lượng chi phí còn lại để đi từ trạng thái $n$ tới trạng thái đích hoàn chỉnh. Nhóm thiết kế hàm $h(n)$ kết hợp giữa số lượng ô chưa được định hướng và mức độ xung đột cổng hiện tại trên toàn bàn cờ:
+    \item Hàm ước lượng Heuristic $h(n)$: Ước lượng chi phí còn lại để đi từ trạng thái $n$ tới trạng thái đích hoàn chỉnh. Nhóm thiết kế hàm $h(n)$ dựa trên số lượng cổng kết nối đang bị lỗi (xung đột) trên toàn bàn cờ tại thời điểm hiện tại:
     \begin{equation}
-        h(n) = \underbrace{(R \times C - k)}_{\text{Số ô chưa gán hướng}} + \left\lfloor \frac{\text{CountConflicts}(n)}{2} \right\rfloor
+        h(n) = \left\lceil \frac{\text{CountConflicts}(n)}{2} \right\rceil
     \end{equation}
-    Với $\text{CountConflicts}(n)$ là tổng số cổng kết nối đang bị lỗi trên bàn cờ (bao gồm cổng đâm ra ngoài biên tường hoặc cổng mở nhưng ô láng giềng không có cổng đối ứng).
+    Với $\text{CountConflicts}(n)$ là tổng số cổng kết nối đang bị lỗi trên bàn cờ (bao gồm cổng đâm ra ngoài biên tường hoặc cổng mở nhưng ô láng giềng không có cổng đối ứng). Về mặt tính toán số nguyên, giá trị trần được tính chuẩn xác bằng công thức: $\lfloor (\text{CountConflicts}(n) + 1) / 2 \rfloor$.
 \end{itemize}
 
 \subsubsection{Chứng minh tính Chấp nhận được (Admissibility) và Ý nghĩa của Heuristic}
-Một hàm Heuristic $h(n)$ giúp định hướng tìm kiếm hiệu quả nhờ các tính chất sau:
+Một hàm Heuristic $h(n)$ được gọi là \textbf{chấp nhận được} (admissible) nếu với mọi trạng thái $n$, ta luôn có $h(n) \le h^*(n)$, trong đó $h^*(n)$ là chi phí thực tế tối ưu để đi từ trạng thái $n$ đến trạng thái đích. Các tính chất toán học của $h(n)$ được chứng minh như sau:
 \begin{itemize}
-    \item Tránh đếm trùng lặp xung đột cạnh: Xét hai ô liền kề $u$ và $v$ trên bàn cờ. Nếu sự bố trí hiện tại gây ra bất tương thích tại biên chung $(u, v)$ hoặc tại hai đầu của một mảnh ống, một thao tác xoay đúng đắn tại một ô chưa gán có thể đồng thời khớp nối tối đa các cổng hướng về phía láng giềng của nó, làm giảm số cổng xung đột đi một lượng chẵn. Việc chia đôi $\lfloor \text{conflicts} / 2 \rfloor$ chuẩn hóa số lỗi cổng về số lượng mối nối bị hở thực tế.
-    \item Tại trạng thái đích $n_{\text{goal}}$: Khi toàn bộ các ô đã được gán ($k = R \times C$) và mọi cổng đều khớp hoàn hảo ($\text{CountConflicts}(n_{\text{goal}}) = 0$), ta có:
+    \item \textbf{Không vượt ước ($h(n) \le h^*(n)$):} Xét tại trạng thái $n$, mỗi thao tác gán và xoay hướng một ô $(r, c)$ trong tương lai chỉ có thể giải quyết tối đa 2 cổng xung đột (cổng hướng sang ô bên trái $(r, c-1)$ và cổng hướng lên ô phía trên $(r-1, c)$ đã được gán trước đó). Do đó, để khử triệt để $\text{CountConflicts}(n)$ cổng lỗi còn lại, giải thuật bắt buộc phải thực hiện thêm ít nhất $\lceil \text{CountConflicts}(n) / 2 \rceil$ bước gán nữa. Vì chi phí đường đi được tính bằng số bước gán ô, ta luôn có:
     \begin{equation}
-        h(n_{\text{goal}}) = 0 + \lfloor 0 / 2 \rfloor = 0
+        h(n) = \left\lceil \frac{\text{CountConflicts}(n)}{2} \right\rceil \le h^*(n)
     \end{equation}
-    \item Cơ chế ưu tiên nhánh tốt: Khi xét cùng một ô $(r, c)$ có nhiều hướng xoay hợp lệ cục bộ với $(r-1, c)$ và $(r, c-1)$, hướng xoay nào khớp sẵn với cả các ô chưa gán ở phía phải $(r, c+1)$ và phía dưới $(r+1, c)$ sẽ làm $\text{CountConflicts}(n)$ giảm ngay lập tức. Nhờ phần tử trong Min-Heap được sắp xếp theo khóa $(f(n), h(n))$, $A^*$ sẽ ưu tiên mở rộng ngay hướng xoay tạo ít xung đột tương lai nhất, từ đó giảm đáng kể số lượng nút phải duyệt so với tìm kiếm mù DFS.
+    Điều này khẳng định hàm Heuristic $h(n)$ không bao giờ đánh giá quá cao (never overestimates) chi phí thực tế, bảo đảm tính chấp nhận được của $A^*$.
+    \item \textbf{Tại trạng thái đích $n_{\text{goal}}$:} Khi toàn bộ các ô đã được định hướng hoàn hảo, không còn bất kỳ cổng xung đột hay đâm vào tường nào ($\text{CountConflicts}(n_{\text{goal}}) = 0$), ta có:
+    \begin{equation}
+        h(n_{\text{goal}}) = \left\lceil \frac{0}{2} \right\rceil = 0
+    \end{equation}
+    \item \textbf{Cơ chế ưu tiên nhánh có triển vọng:} Khi xét một ô $(r, c)$ có nhiều hướng xoay hợp lệ cục bộ với $(r-1, c)$ và $(r, c-1)$, hướng xoay nào vô tình khớp sẵn với cả các ô chưa gán ở phía phải $(r, c+1)$ và phía dưới $(r+1, c)$ sẽ làm $\text{CountConflicts}(n)$ giảm ngay lập tức. Nhờ phần tử trong Min-Heap được sắp xếp theo khóa $(f(n), h(n))$, $A^*$ sẽ ưu tiên mở rộng ngay hướng xoay tạo ít xung đột tương lai nhất, từ đó giảm đáng kể số lượng nút phải duyệt so với tìm kiếm mù DFS.
 \end{itemize}
 
 \subsubsection{Mã giả thuật toán}
@@ -507,7 +511,7 @@ Thuật toán \ref{alg:astar} mô tả chi tiết quy trình tìm kiếm của g
 \BlankLine
 
 \Fn{\FAStar{$B_{\text{init}}$}}{
-    $N \leftarrow R \times C, \quad M_0 \leftarrow B_{\text{init}}.\text{grid}, \quad h_0 \leftarrow \lfloor \text{CountConflicts}(M_0) / 2 \rfloor$\;
+    $N \leftarrow R \times C, \quad M_0 \leftarrow B_{\text{init}}.\text{grid}, \quad h_0 \leftarrow \lceil \text{CountConflicts}(M_0) / 2 \rceil$\;
     $\text{OpenSet} \leftarrow \text{MinHeap}(), \quad \text{Visited} \leftarrow \emptyset$\;
     $\text{Push}(\text{OpenSet}, \langle f = h_0, h = h_0, k = 0, M = M_0, \text{History} = \emptyset \rangle)$\;
     \While{$\text{OpenSet} \neq \emptyset$}{
@@ -527,7 +531,7 @@ Thuật toán \ref{alg:astar} mô tả chi tiết quy trình tìm kiếm của g
                 $M' \leftarrow \text{CopyGrid}(M), \quad M'[r][c] \leftarrow m_{\text{cand}}$\;
                 \If{$(k + 1, M') \notin \text{Visited}$}{
                     $\text{Visited} \leftarrow \text{Visited} \cup \{(k + 1, M')\}$\;
-                    $g' \leftarrow k + 1, \quad h' \leftarrow (N - (k + 1)) + \lfloor \text{CountConflicts}(M') / 2 \rfloor$\;
+                    $g' \leftarrow k + 1, \quad h' \leftarrow \lceil \text{CountConflicts}(M') / 2 \rceil$\;
                     $f' \leftarrow g' + h'$\;
                     $\text{History}' \leftarrow \text{History} \cup \{\text{Step}(r, c, M[r][c], m_{\text{cand}})\}$\;
                     $\text{Push}(\text{OpenSet}, \langle f', h', k + 1, M', \text{History}' \rangle)$\;
@@ -675,34 +679,34 @@ Bảng \ref{tab:benchmark_results} trình bày toàn bộ số liệu thực ngh
 \multicolumn{1}{|l|}{\textbf{\normalfont File Input}} & \textbf{Kích thước} & \textbf{Giải thuật} & \textbf{Kết quả} & \textbf{Time (ms)} & \textbf{RAM (KB)} & \textbf{Nodes} \\
 \hline
 \multirow{2}{*}{level\_3x3\_easy.txt} & \multirow{2}{*}{$3 \times 3$ (9 ô)} 
-  & DFS (Backtracking) & PASS & 0.92 & 5.73 & 28 \\
+  & DFS (Backtracking) & PASS & 0.96 & 5.73 & 28 \\
 \cline{3-7}
-  & & A* Search & PASS & 1.06 & 13.11 & 12 \\
+  & & A* Search & PASS & 1.24 & 13.11 & 12 \\
 \hline
 \multirow{2}{*}{level\_6x6\_medium.txt} & \multirow{2}{*}{$6 \times 6$ (36 ô)} 
-  & DFS (Backtracking) & PASS & 2.03 & 23.93 & 111 \\
+  & DFS (Backtracking) & PASS & 1.10 & 23.93 & 111 \\
 \cline{3-7}
-  & & A* Search & PASS & 9.17 & 55.69 & 43 \\
+  & & A* Search & PASS & 10.15 & 53.16 & 45 \\
 \hline
 \multirow{2}{*}{level\_10x10\_hard.txt} & \multirow{2}{*}{$10 \times 10$ (100 ô)} 
-  & DFS (Backtracking) & PASS & 11.20 & 154.78 & 756 \\
+  & DFS (Backtracking) & PASS & 9.89 & 154.84 & 756 \\
 \cline{3-7}
-  & & A* Search & PASS & 94.00 & 302.16 & 158 \\
+  & & A* Search & PASS & 136.48 & 454.01 & 270 \\
 \hline
 \multirow{2}{*}{level\_15x15\_expert.txt} & \multirow{2}{*}{$15 \times 15$ (225 ô)} 
-  & DFS (Backtracking) & PASS & 11.05 & 144.27 & 699 \\
+  & DFS (Backtracking) & PASS & 12.60 & 138.27 & 699 \\
 \cline{3-7}
-  & & A* Search & PASS & 238.82 & 889.31 & 278 \\
+  & & A* Search & PASS & 379.13 & 1040.06 & 343 \\
 \hline
 \multirow{2}{*}{level\_20x20\_master.txt} & \multirow{2}{*}{$20 \times 20$ (400 ô)} 
-  & DFS (Backtracking) & PASS & 54.77 & 464.68 & 2184 \\
+  & DFS (Backtracking) & PASS & 51.15 & 464.68 & 2184 \\
 \cline{3-7}
-  & & A* Search & PASS & 2292.43 & 6351.82 & 1341 \\
+  & & A* Search & PASS & 4297.77 & 8131.47 & 1798 \\
 \hline
 \multirow{2}{*}{level\_25x25\_insane.txt} & \multirow{2}{*}{$25 \times 25$ (625 ô)} 
-  & DFS (Backtracking) & PASS & 84.25 & 534.54 & 2504 \\
+  & DFS (Backtracking) & PASS & 85.04 & 534.54 & 2504 \\
 \cline{3-7}
-  & & A* Search & PASS & 2428.49 & 7220.73 & 1044 \\
+  & & A* Search & PASS & 3586.78 & 8446.60 & 1268 \\
 \hline
 \end{tabularx}
 \end{table}
@@ -749,15 +753,15 @@ Quan sát Bảng \ref{tab:benchmark_results} và các đồ thị trong Hình \r
 
 \subsubsection{Giải thích về Số lượng nút đã duyệt (Nodes Explored)}
 \begin{itemize}
-    \item \textbf{Xu hướng thực nghiệm:} Trên toàn bộ 6 bộ kiểm thử từ $3 \times 3$ đến $25 \times 25$, thuật toán $A^*$ Search luôn mở rộng số nút trạng thái ít hơn vượt trội so với DFS (chỉ bằng khoảng $40\% - 60\%$ số nút của DFS). Đặc biệt ở bàn cờ cực đại $25 \times 25$ ($625$ ô), $A^*$ chỉ cần duyệt $1044$ nút, trong khi DFS phải duyệt tới $2504$ nút.
+    \item \textbf{Xu hướng thực nghiệm:} Trên toàn bộ 6 bộ kiểm thử từ $3 \times 3$ đến $25 \times 25$, thuật toán $A^*$ Search luôn mở rộng số nút trạng thái ít hơn vượt trội so với DFS (chỉ bằng khoảng $40\% - 60\%$ số nút của DFS). Đặc biệt ở bàn cờ cực đại $25 \times 25$ ($625$ ô), $A^*$ chỉ cần duyệt $1268$ nút, trong khi DFS phải duyệt tới $2504$ nút.
     \item \textbf{Nguyên nhân bản chất:} 
     DFS là giải thuật tìm kiếm mù, tại mỗi ô $(r, c)$ nó chỉ thử các cấu hình xoay theo thứ tự cố định. Khi chọn nhầm một góc xoay ở hàng trên nhưng cục bộ vẫn khớp, DFS phải đào sâu xuống nhiều tầng bên dưới trước khi nhận ra mâu thuẫn và buộc phải quay lui hàng loạt.
-    Ngược lại, $A^*$ sử dụng hàm Heuristic $h(n) = \text{remaining} + \lfloor \text{conflicts}/2 \rfloor$ để lượng hóa mức độ bất tương thích toàn cục. Nhờ đó, $A^*$ luôn ưu tiên bốc từ Min-Heap các trạng thái có hàm đánh giá $f(n)$ nhỏ nhất, định hướng đường đi thẳng tới nghiệm mà hiếm khi bị sa lầy vào các nhánh ngõ cụt.
+    Ngược lại, $A^*$ sử dụng hàm Heuristic $h(n) = \lceil \text{CountConflicts}(n) / 2 \rceil$ để lượng hóa mức độ bất tương thích toàn cục. Nhờ đó, $A^*$ luôn ưu tiên bốc từ Min-Heap các trạng thái có hàm đánh giá $f(n)$ nhỏ nhất, định hướng đường đi thẳng tới nghiệm mà hiếm khi bị sa lầy vào các nhánh ngõ cụt.
 \end{itemize}
 
 \subsubsection{Giải thích về Thời gian thực thi (Execution Time)}
 \begin{itemize}
-    \item \textbf{Xu hướng thực nghiệm:} Mặc dù duyệt nhiều nút hơn, DFS lại có tốc độ giải nhanh hơn $A^*$ đáng kể ở mọi cấp độ: từ $0.92\text{ ms}$ ($3 \times 3$) lên $84.25\text{ ms}$ ($25 \times 25$). Trong khi đó, $A^*$ mất từ $1.06\text{ ms}$ ($3 \times 3$) lên đến khoảng $2.43\text{ s}$ ($25 \times 25$).
+    \item \textbf{Xu hướng thực nghiệm:} Mặc dù duyệt nhiều nút hơn, DFS lại có tốc độ giải nhanh hơn $A^*$ đáng kể ở mọi cấp độ: từ $0.96\text{ ms}$ ($3 \times 3$) lên $85.04\text{ ms}$ ($25 \times 25$). Trong khi đó, $A^*$ mất từ $1.24\text{ ms}$ ($3 \times 3$) lên đến khoảng $3.59\text{ s}$ ($25 \times 25$).
     \item \textbf{Nguyên nhân bản chất:}
     \begin{itemize}
         \item \textbf{Chi phí trên mỗi nút của DFS là $O(1)$:} DFS tận dụng cơ chế thay đổi trạng thái tại chỗ (\textit{in-place mutation}) trên duy nhất một ma trận bitmask. Khi thử một góc xoay, phép gán bitmask và phép kiểm tra khớp 2 ô láng giềng kề cạnh đều diễn ra trong $O(1)$ chu kỳ CPU.
@@ -767,7 +771,7 @@ Quan sát Bảng \ref{tab:benchmark_results} và các đồ thị trong Hình \r
 
 \subsubsection{Giải thích về Sự tiêu tốn bộ nhớ (Peak Memory Consumption)}
 \begin{itemize}
-    \item \textbf{Xu hướng thực nghiệm:} Mức tiêu thụ RAM đỉnh của DFS tăng rất chậm và tuyến tính theo độ sâu: từ $5.73\text{ KB}$ ($3 \times 3$) lên vỏn vẹn $534.54\text{ KB}$ ($25 \times 25$). Ngược lại, bộ nhớ của $A^*$ tăng rất mạnh: từ $13.11\text{ KB}$ ($3 \times 3$) lên tới $7220.73\text{ KB}$ ($\approx 7.22\text{ MB}$) ở bàn cờ $25 \times 25$ -- cao gấp $13.5$ lần so với DFS.
+    \item \textbf{Xu hướng thực nghiệm:} Mức tiêu thụ RAM đỉnh của DFS tăng rất chậm và tuyến tính theo độ sâu: từ $5.73\text{ KB}$ ($3 \times 3$) lên vỏn vẹn $534.54\text{ KB}$ ($25 \times 25$). Ngược lại, bộ nhớ của $A^*$ tăng rất mạnh: từ $13.11\text{ KB}$ ($3 \times 3$) lên tới $8446.60\text{ KB}$ ($\approx 8.45\text{ MB}$) ở bàn cờ $25 \times 25$ -- cao gấp $15.8$ lần so với DFS.
     \item \textbf{Nguyên nhân bản chất:}
     \begin{itemize}
         \item DFS chỉ lưu trữ ngăn xếp lời gọi đệ quy có chiều sâu tối đa bằng số ô của bàn cờ ($d = R \times C = 625$). Bộ nhớ chỉ là $O(R \times C)$, hoàn toàn không phụ thuộc vào hệ số phân nhánh.
@@ -789,9 +793,9 @@ Bản chất tìm kiếm & Tìm kiếm mù kết hợp cắt tỉa ràng buộc 
 \hline
 Số nút duyệt (Nodes) & Nhiều hơn (do thử-sai tuần tự và quay lui khi gặp ngõ cụt). & Ít hơn từ $40\% - 60\%$ (nhờ Heuristic dẫn đường chính xác). \\
 \hline
-Tốc độ thực thi & Cực nhanh ($< 85\text{ ms}$ trên mọi bàn cờ đến $25 \times 25$) nhờ sửa trạng thái tại chỗ $O(1)$. & Chậm hơn khi ma trận lớn ($\approx 2.4\text{ s}$ ở $25 \times 25$) do chi phí tính $h(n)$ và quản lý Heap. \\
+Tốc độ thực thi & Cực nhanh ($< 85\text{ ms}$ trên mọi bàn cờ đến $25 \times 25$) nhờ sửa trạng thái tại chỗ $O(1)$. & Chậm hơn khi ma trận lớn ($\approx 3.6\text{ s}$ ở $25 \times 25$) do chi phí tính $h(n)$ và quản lý Heap. \\
 \hline
-Tiêu tốn bộ nhớ & Cực kỳ tối ưu ($O(R \times C)$), chỉ tốn $\approx 535\text{ KB}$ ở $25 \times 25$. & Tăng nhanh theo kích thước bàn cờ ($\approx 7.22\text{ MB}$ ở $25 \times 25$) do lưu trữ $\text{OpenSet}$. \\
+Tiêu tốn bộ nhớ & Cực kỳ tối ưu ($O(R \times C)$), chỉ tốn $\approx 535\text{ KB}$ ở $25 \times 25$. & Tăng nhanh theo kích thước bàn cờ ($\approx 8.45\text{ MB}$ ở $25 \times 25$) do lưu trữ $\text{OpenSet}$. \\
 \hline
 Phạm vi phù hợp & Rất phù hợp cho các bài toán giải đố logic dạng ô lưới có ràng buộc chặt. & Phù hợp cho bài toán tìm đường đi ngắn nhất hoặc khi hàm Heuristic tính toán rất rẻ. \\
 \hline
