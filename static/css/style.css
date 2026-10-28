@@ -1,8 +1,29 @@
-/* Utility component classes */
+/* 
+  style.css
+  Puzzle Pipes AI Solver - Visualizer Custom Component Styles
+*/
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.7);
+}
+
+/* Form Input */
 .form-input {
   width: 100%;
   padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.25rem;
   border-radius: 0.75rem;
   background-color: #f8fafc;
@@ -20,21 +41,23 @@
 
 .form-input:focus {
   border-color: #0ea5e9;
-  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2);
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.25);
 }
 
+/* Control Buttons */
 .control-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 0.875rem;
-  font-size: 0.8125rem;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  border-radius: 0.75rem;
+  border-radius: 0.625rem;
   background-color: #f1f5f9;
   color: #334155;
   border: 1px solid #e2e8f0;
   transition: all 0.15s ease-in-out;
+  user-select: none;
 }
 
 .dark .control-btn {
@@ -46,15 +69,17 @@
 .control-btn:hover:not(:disabled) {
   background-color: #e2e8f0;
   color: #0f172a;
+  border-color: #cbd5e1;
 }
 
 .dark .control-btn:hover:not(:disabled) {
   background-color: #334155;
   color: #f8fafc;
+  border-color: #475569;
 }
 
 .control-btn:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
@@ -62,13 +87,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 1rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  border-radius: 0.75rem;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 0.625rem;
   background-color: #0284c7;
   color: #ffffff;
   transition: all 0.15s ease-in-out;
+  user-select: none;
+  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.3);
 }
 
 .control-btn-primary:hover:not(:disabled) {
@@ -76,10 +103,11 @@
 }
 
 .control-btn-primary:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
+/* Metric Display Boxes */
 .metric-box {
   background-color: #f8fafc;
   border: 1px solid #e2e8f0;
@@ -87,7 +115,8 @@
   padding: 0.625rem 0.75rem;
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  gap: 0.2rem;
+  transition: border-color 0.15s;
 }
 
 .dark .metric-box {
@@ -97,9 +126,9 @@
 
 .metric-label {
   font-size: 0.6875rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.025em;
+  letter-spacing: 0.03em;
   color: #64748b;
 }
 
@@ -109,7 +138,7 @@
 
 .metric-value {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: #0284c7;
 }
@@ -118,19 +147,28 @@
   color: #38bdf8;
 }
 
+/* Algorithm Option Cards */
+.algo-card.active {
+  border-color: #0284c7;
+  background-color: rgba(14, 165, 233, 0.08);
+}
+
+.dark .algo-card.active {
+  border-color: #38bdf8;
+  background-color: rgba(14, 165, 233, 0.15);
+}
+
 /* Pipe Tiles and SVG Rendering */
 .pipe-tile {
-  width: 56px;
-  height: 56px;
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
+  border-radius: 0.375rem;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s, border-color 0.15s;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
 
 .dark .pipe-tile {
@@ -141,15 +179,29 @@
 
 .pipe-tile:hover {
   background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  transform: scale(1.04);
+  z-index: 5;
 }
 
 .dark .pipe-tile:hover {
   background-color: #27354f;
+  border-color: #475569;
+  transform: scale(1.04);
+  z-index: 5;
 }
 
+/* Active Highlight when tile is placed/rotated */
 .pipe-tile.highlight {
   border-color: #0ea5e9;
-  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.4);
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.5);
+  animation: tile-pop 0.25s ease-out;
+}
+
+@keyframes tile-pop {
+  0% { transform: scale(0.92); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
 }
 
 .pipe-svg {
@@ -159,33 +211,33 @@
 
 .pipe-line {
   stroke: #94a3b8;
-  stroke-width: 16;
+  stroke-width: 15;
   stroke-linecap: round;
-  transition: stroke 0.25s, filter 0.25s;
+  transition: stroke 0.2s, filter 0.2s;
 }
 
 .dark .pipe-line {
-  stroke: #475569;
+  stroke: #64748b;
 }
 
 .pipe-hub {
   fill: #94a3b8;
-  transition: fill 0.25s;
+  transition: fill 0.2s;
 }
 
 .dark .pipe-hub {
-  fill: #475569;
+  fill: #64748b;
 }
 
-/* Connected Flow State */
+/* Connected Flow State (When solved or successfully connected) */
 .pipe-tile.connected .pipe-line {
   stroke: #0284c7;
-  filter: drop-shadow(0 0 3px rgba(2, 132, 199, 0.35));
+  filter: drop-shadow(0 0 2px rgba(2, 132, 199, 0.4));
 }
 
 .dark .pipe-tile.connected .pipe-line {
   stroke: #38bdf8;
-  filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.55));
+  filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.7));
 }
 
 .pipe-tile.connected .pipe-hub {

@@ -106,9 +106,9 @@ def plot_benchmarks(csv_path: str = "outputs/benchmark_results.csv", output_dir:
     fig.patch.set_facecolor('#ffffff')
 
     metrics = [
-        ("time_ms", "Execution Time (ms)", "Thời gian thực thi (ms)", axes[0]),
-        ("memory_kb", "Peak Memory (KB)", "Bộ nhớ RAM đỉnh (KB)", axes[1]),
-        ("nodes", "Nodes Explored", "Số lượng nút duyệt (Nodes)", axes[2])
+        ("time_ms", "Execution Time (ms)", "Execution Time (ms)", axes[0]),
+        ("memory_kb", "Peak Memory (KB)", "Peak Memory (KB)", axes[1]),
+        ("nodes", "Nodes Explored", "Nodes Explored", axes[2])
     ]
 
     for metric_key, y_label_en, y_label_vn, ax in metrics:
@@ -133,9 +133,9 @@ def plot_benchmarks(csv_path: str = "outputs/benchmark_results.csv", output_dir:
 
         ax.set_xticks(x)
         ax.set_xticklabels(sizes, fontweight='semibold', fontsize=10.5)
-        ax.set_xlabel("Grid Size (Kích thước bàn cờ)", fontsize=10.5, fontweight='bold', labelpad=8)
+        ax.set_xlabel("Grid Size", fontsize=10.5, fontweight='bold', labelpad=8)
         ax.set_ylabel(y_label_en, fontsize=10.5, fontweight='bold', labelpad=8)
-        ax.set_title(f"{y_label_en}\n({y_label_vn})", fontsize=11.5, fontweight='bold', pad=10, color='#0f172a')
+        ax.set_title(f"{y_label_en}", fontsize=11.5, fontweight='bold', pad=10, color='#0f172a')
         ax.legend(frameon=True, facecolor='#ffffff', edgecolor='#e2e8f0', fontsize=9.5, loc='upper left')
 
     plt.tight_layout()
